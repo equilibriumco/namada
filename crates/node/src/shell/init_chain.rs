@@ -15,7 +15,7 @@ use namada_sdk::state::StorageWrite;
 use namada_sdk::time::{TimeZone, Utc};
 use namada_sdk::token::storage_key::masp_token_map_key;
 use namada_sdk::token::{credit_tokens, write_denom};
-use namada_sdk::{eth_bridge, ibc};
+use namada_sdk::{eth_bridge, ibc, airdrop};
 use namada_vm::validate_untrusted_wasm;
 
 use super::*;
@@ -294,6 +294,24 @@ where
         .expect("Must be able to copy PoS genesis validator sets");
 
         ibc::init_genesis_storage(&mut self.state);
+
+        // Initialize airdrop sapling configuration if airdrop directory exists
+        let airdrop_dir = self
+            .base_dir
+            .join(self.state.in_mem().chain_id.as_str())
+            .join("airdrop");
+        if airdrop_dir.exists() {
+            tracing::info!(
+                "Initializing airdrop storage from {}",
+                airdrop_dir.display()
+            );
+            airdrop::storage::init_storage(
+                &mut self.state,
+                &airdrop_dir,
+            )
+            .expect("Failed to initialize airdrop storage");
+        }
+
         ControlFlow::Continue(())
     }
 
