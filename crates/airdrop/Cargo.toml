@@ -13,8 +13,12 @@ rust-version.workspace = true
 
 [dependencies]
 namada_core.workspace = true
+namada_storage.workspace = true
 namada_tx.workspace = true
 namada_trans_token.workspace = true
 namada_vp_env.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+zair-core.workspace = true

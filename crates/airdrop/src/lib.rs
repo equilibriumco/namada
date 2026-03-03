@@ -1,6 +1,9 @@
 //! Airdrop functionality
 
+pub mod storage;
 pub mod vp;
+
+mod storage_key;
 
 use namada_core::address::{Address, InternalAddress};
 

@@ -146,7 +146,8 @@ where
                 }
             } else if let Some(token) = is_any_minted_balance_key(key) {
                 if *token == native_token && !is_native_token_transferable {
-                    // Check if this is an Airdrop mint (allowed even when native token transfers disabled)
+                    // Check if this is an Airdrop mint (allowed even when
+                    // native token transfers disabled)
                     let minter_key = minter_key(token);
                     let is_airdrop_mint = ctx
                         .read_post::<Address>(&minter_key)?
