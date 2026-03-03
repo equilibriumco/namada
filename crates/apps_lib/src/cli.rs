@@ -263,6 +263,8 @@ pub mod cmds {
                 .subcommand(TxCommissionRateChange::def().display_order(2))
                 .subcommand(TxChangeConsensusKey::def().display_order(2))
                 .subcommand(TxMetadataChange::def().display_order(2))
+                // Airdrop transactions
+                .subcommand(ClaimAirdrop::def().display_order(2))
                 // Ethereum bridge transactions
                 .subcommand(AddToEthBridgePool::def().display_order(3))
                 // PGF transactions
@@ -357,6 +359,7 @@ pub mod cmds {
             let withdraw = Self::parse_with_ctx(matches, Withdraw);
             let redelegate = Self::parse_with_ctx(matches, Redelegate);
             let claim_rewards = Self::parse_with_ctx(matches, ClaimRewards);
+            let claim_airdrop = Self::parse_with_ctx(matches, ClaimAirdrop);
             let query_epoch = Self::parse_with_ctx(matches, QueryEpoch);
             let query_next_epoch_info =
                 Self::parse_with_ctx(matches, QueryNextEpochInfo);
@@ -433,6 +436,7 @@ pub mod cmds {
                 .or(withdraw)
                 .or(redelegate)
                 .or(claim_rewards)
+                .or(claim_airdrop)
                 .or(add_to_eth_bridge_pool)
                 .or(tx_update_steward_commission)
                 .or(tx_resign_steward)
@@ -529,6 +533,7 @@ pub mod cmds {
         Unbond(Unbond),
         Withdraw(Withdraw),
         ClaimRewards(ClaimRewards),
+        ClaimAirdrop(ClaimAirdrop),
         Redelegate(Redelegate),
         AddToEthBridgePool(AddToEthBridgePool),
         TxUpdateStewardCommission(TxUpdateStewardCommission),
@@ -1710,6 +1715,25 @@ pub mod cmds {
                      contributed in consensus."
                 ))
                 .add_args::<args::ClaimRewards<args::CliTypes>>()
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct ClaimAirdrop(pub args::ClaimAirdrop<args::CliTypes>);
+
+    impl SubCmd for ClaimAirdrop {
+        const CMD: &'static str = "claim-airdrop";
+
+        fn parse(matches: &ArgMatches) -> Option<Self> {
+            matches
+                .subcommand_matches(Self::CMD)
+                .map(|matches| ClaimAirdrop(args::ClaimAirdrop::parse(matches)))
+        }
+
+        fn def() -> App {
+            App::new(Self::CMD)
+                .about(wrap!("Claim a ZAIR airdrop."))
+                .add_args::<args::ClaimAirdrop<args::CliTypes>>()
         }
     }
 
@@ -3423,7 +3447,7 @@ pub mod args {
     pub use namada_sdk::tx::{
         TX_BECOME_VALIDATOR_WASM, TX_BOND_WASM, TX_BRIDGE_POOL_WASM,
         TX_CHANGE_COMMISSION_WASM, TX_CHANGE_CONSENSUS_KEY_WASM,
-        TX_CHANGE_METADATA_WASM, TX_CLAIM_REWARDS_WASM,
+        TX_CHANGE_METADATA_WASM, TX_CLAIM_AIRDROP_WASM, TX_CLAIM_REWARDS_WASM,
         TX_DEACTIVATE_VALIDATOR_WASM, TX_IBC_WASM, TX_INIT_ACCOUNT_WASM,
         TX_INIT_PROPOSAL, TX_REACTIVATE_VALIDATOR_WASM, TX_REDELEGATE_WASM,
         TX_RESIGN_STEWARD, TX_REVEAL_PK, TX_TRANSFER_WASM, TX_UNBOND_WASM,
@@ -6579,6 +6603,49 @@ pub mod args {
                     "Source address for claiming rewards for a bond. For \
                      self-bonds, the validator is also the source."
                 )))
+        }
+    }
+
+    impl CliToSdk<ClaimAirdrop<SdkTypes>> for ClaimAirdrop<CliTypes> {
+        type Error = std::io::Error;
+
+        fn to_sdk(
+            self,
+            ctx: &mut Context,
+        ) -> Result<ClaimAirdrop<SdkTypes>, Self::Error> {
+            let tx = self.tx.to_sdk(ctx)?;
+            let chain_ctx = ctx.borrow_chain_or_exit();
+
+            Ok(ClaimAirdrop::<SdkTypes> {
+                tx,
+                source: chain_ctx.get(&self.source),
+                amount: self.amount,
+                tx_code_path: self.tx_code_path.to_path_buf(),
+            })
+        }
+    }
+
+    impl Args for ClaimAirdrop<CliTypes> {
+        fn parse(matches: &ArgMatches) -> Self {
+            let tx = Tx::parse(matches);
+            let source = SOURCE.parse(matches);
+            let raw_amount = AMOUNT.parse(matches);
+            let amount = InputAmount::Unvalidated(raw_amount);
+            let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
+            Self {
+                tx,
+                source,
+                amount,
+                tx_code_path,
+            }
+        }
+
+        fn def(app: App) -> App {
+            app.add_args::<Tx<CliTypes>>()
+                .arg(SOURCE.def().help(wrap!("Source address.")))
+                .arg(
+                    AMOUNT.def().help(wrap!("The amount to claim in decimal.")),
+                )
         }
     }
 

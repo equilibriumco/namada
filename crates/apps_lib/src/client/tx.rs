@@ -1851,6 +1851,26 @@ where
     Ok(())
 }
 
+pub async fn submit_claim_airdrop<N: Namada>(
+    namada: &N,
+    args: args::ClaimAirdrop,
+) -> Result<(), error::Error>
+where
+    <N::Client as namada_sdk::io::Client>::Error: std::fmt::Display,
+{
+    let (mut tx, signing_data) = args.build(namada).await?;
+
+    if let Some(dump_tx) = args.tx.dump_tx {
+        tx::dump_tx(namada.io(), dump_tx, args.tx.output_folder, tx)?;
+    } else {
+        sign(namada, &mut tx, &args.tx, signing_data).await?;
+
+        namada.submit(tx, &args.tx).await?;
+    }
+
+    Ok(())
+}
+
 pub async fn submit_redelegate<N: Namada>(
     namada: &N,
     args: args::Redelegate,

@@ -1892,6 +1892,41 @@ impl ClaimRewards {
     }
 }
 
+/// Claim arguments
+#[derive(Clone, Debug)]
+pub struct ClaimAirdrop<C: NamadaTypes = SdkTypes> {
+    /// Common tx arguments
+    pub tx: Tx<C>,
+    /// Source address for claiming Airdrop
+    pub source: C::Address,
+    /// Amount to claim
+    pub amount: InputAmount,
+    /// Path to the TX WASM code file
+    pub tx_code_path: PathBuf,
+}
+
+impl<C: NamadaTypes> TxBuilder<C> for ClaimAirdrop<C> {
+    fn tx<F>(self, func: F) -> Self
+    where
+        F: FnOnce(Tx<C>) -> Tx<C>,
+    {
+        ClaimAirdrop {
+            tx: func(self.tx),
+            ..self
+        }
+    }
+}
+
+impl ClaimAirdrop {
+    /// Build a transaction from this builder
+    pub async fn build(
+        &self,
+        context: &impl Namada,
+    ) -> crate::error::Result<(namada_tx::Tx, SigningData)> {
+        tx::build_claim_airdrop(context, self).await
+    }
+}
+
 /// Query asset conversions
 #[derive(Clone, Debug)]
 pub struct QueryConversions<C: NamadaTypes = SdkTypes> {

@@ -8,6 +8,7 @@ members = [
     "tx_change_consensus_key",
     "tx_change_validator_commission",
     "tx_change_validator_metadata",
+    "tx_claim_airdrop",
     "tx_claim_rewards",
     "tx_deactivate_validator",
     "tx_ibc",

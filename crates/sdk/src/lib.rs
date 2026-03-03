@@ -67,12 +67,12 @@ use tx::{
     ProcessTxResponse, TX_BECOME_VALIDATOR_WASM, TX_BOND_WASM,
     TX_BRIDGE_POOL_WASM, TX_CHANGE_COMMISSION_WASM,
     TX_CHANGE_CONSENSUS_KEY_WASM, TX_CHANGE_METADATA_WASM,
-    TX_CLAIM_REWARDS_WASM, TX_DEACTIVATE_VALIDATOR_WASM, TX_IBC_WASM,
-    TX_INIT_ACCOUNT_WASM, TX_INIT_PROPOSAL, TX_REACTIVATE_VALIDATOR_WASM,
-    TX_REDELEGATE_WASM, TX_RESIGN_STEWARD, TX_REVEAL_PK, TX_TRANSFER_WASM,
-    TX_UNBOND_WASM, TX_UNJAIL_VALIDATOR_WASM, TX_UPDATE_ACCOUNT_WASM,
-    TX_UPDATE_STEWARD_COMMISSION, TX_VOTE_PROPOSAL, TX_WITHDRAW_WASM,
-    VP_USER_WASM,
+    TX_CLAIM_AIRDROP_WASM, TX_CLAIM_REWARDS_WASM, TX_DEACTIVATE_VALIDATOR_WASM,
+    TX_IBC_WASM, TX_INIT_ACCOUNT_WASM, TX_INIT_PROPOSAL,
+    TX_REACTIVATE_VALIDATOR_WASM, TX_REDELEGATE_WASM, TX_RESIGN_STEWARD,
+    TX_REVEAL_PK, TX_TRANSFER_WASM, TX_UNBOND_WASM, TX_UNJAIL_VALIDATOR_WASM,
+    TX_UPDATE_ACCOUNT_WASM, TX_UPDATE_STEWARD_COMMISSION, TX_VOTE_PROPOSAL,
+    TX_WITHDRAW_WASM, VP_USER_WASM,
 };
 use wallet::{Wallet, WalletIo, WalletStorage};
 pub use {namada_io as io, namada_wallet as wallet};
@@ -530,6 +530,20 @@ pub trait Namada: NamadaIo {
             validator,
             source: None,
             tx_code_path: PathBuf::from(TX_CLAIM_REWARDS_WASM),
+            tx: self.tx_builder(),
+        }
+    }
+
+    /// Make a Claim-airdrop builder from the given minimum set of arguments
+    fn new_claim_airdrop(
+        &self,
+        source: Address,
+        amount: InputAmount,
+    ) -> args::ClaimAirdrop {
+        args::ClaimAirdrop {
+            source,
+            amount,
+            tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),
         }
     }
