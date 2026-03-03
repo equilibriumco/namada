@@ -3,6 +3,7 @@ resolver = "2"
 
 members = [
   "crates/account",
+  "crates/airdrop",
   "crates/apps",
   "crates/apps_lib",
   "crates/benches",
@@ -67,6 +68,7 @@ rust-version = "1.85" # MSRV
 
 [workspace.dependencies]
 namada_account = { version = "0.251.0", path = "crates/account" }
+namada_airdrop = { version = "0.251.0", path = "crates/airdrop" }
 namada_apps_lib = { version = "0.251.0", path = "crates/apps_lib" }
 namada_controller = { version = "0.251.0", path = "crates/controller" }
 namada_core = { version = "0.251.0", path = "crates/core" }

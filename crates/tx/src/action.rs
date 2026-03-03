@@ -12,6 +12,7 @@ use namada_core::address::Address;
 use namada_core::borsh::{BorshDeserialize, BorshSerialize};
 use namada_core::masp::MaspTxId;
 use namada_core::storage::KeySeg;
+use namada_core::token::Amount;
 use namada_core::{address, storage};
 
 pub use crate::data::pos::{
@@ -30,6 +31,7 @@ pub enum Action {
     Pgf(PgfAction),
     Masp(MaspAction),
     IbcShielding,
+    Airdrop(AirdropAction),
 }
 
 /// PoS tx actions.
@@ -73,6 +75,18 @@ pub enum MaspAction {
     MaspSectionRef(MaspTxId),
     /// A required authorizer for the transaction
     MaspAuthorizer(Address),
+}
+
+/// Airdrop tx actions.
+#[derive(Clone, Debug, BorshDeserialize, BorshSerialize, PartialEq)]
+pub enum AirdropAction {
+    /// Claim airdrop tokens
+    Claim {
+        /// Target address receiving the airdrop
+        target: Address,
+        /// Amount to claim
+        amount: Amount,
+    },
 }
 
 /// Read actions from temporary storage

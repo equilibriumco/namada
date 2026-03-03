@@ -114,6 +114,14 @@ fn validate_tx(
                 )?,
             Action::Masp(MaspAction::MaspSectionRef(_)) => (),
             Action::IbcShielding => (),
+            Action::Airdrop(AirdropAction::Claim { target, .. }) => gadget
+                .verify_signatures_when(
+                    || target == addr,
+                    ctx,
+                    &tx,
+                    cmt,
+                    &addr,
+                )?,
         }
     }
 

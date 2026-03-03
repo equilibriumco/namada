@@ -72,6 +72,7 @@ migrations = [
 
 [dependencies]
 namada_account.workspace = true
+namada_airdrop.workspace = true
 namada_core.workspace = true
 namada_ethereum_bridge.workspace = true
 namada_events.workspace = true

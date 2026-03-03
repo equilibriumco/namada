@@ -1,0 +1,19 @@
+[package]
+name = "tx_claim_airdrop"
+description = "WASM transaction to claim ZAIR airdrop rewards"
+edition.workspace = true
+version.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+debug-panic-hook = []
+
+[dependencies]
+namada_tx_prelude.workspace = true
+
+rlsf.workspace = true
+getrandom.workspace = true
+
+[lib]
+crate-type = ["cdylib"]

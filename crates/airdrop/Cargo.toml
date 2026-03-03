@@ -1,0 +1,20 @@
+[package]
+name = "namada_airdrop"
+description = "Airdrop functionality for Namada"
+resolver = "2"
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+namada_core.workspace = true
+namada_tx.workspace = true
+namada_trans_token.workspace = true
+namada_vp_env.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

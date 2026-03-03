@@ -69,6 +69,8 @@ pub enum Discriminant {
     TempStorage = 15,
     /// Replay protection
     ReplayProtection = 16,
+    /// Airdrop
+    Airdrop = 17,
 }
 
 /// Raw address representation.

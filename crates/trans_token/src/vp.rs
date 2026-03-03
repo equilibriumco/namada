@@ -11,7 +11,7 @@ use namada_core::token::Amount;
 use namada_systems::{governance, parameters};
 use namada_tx::BatchedTxRef;
 use namada_tx::action::{
-    Action, Bond, ClaimRewards, GovAction, PosAction, Withdraw,
+    Action, AirdropAction, Bond, ClaimRewards, GovAction, PosAction, Withdraw,
 };
 use namada_vp_env::{Error, Result, VpEnv};
 
@@ -146,12 +146,22 @@ where
                 }
             } else if let Some(token) = is_any_minted_balance_key(key) {
                 if *token == native_token && !is_native_token_transferable {
-                    tracing::debug!(
-                        "Minting/Burning native token isn't allowed"
-                    );
-                    return Err(Error::new_const(
-                        "Minting/Burning native token isn't allowed",
-                    ));
+                    // Check if this is an Airdrop mint (allowed even when native token transfers disabled)
+                    let minter_key = minter_key(token);
+                    let is_airdrop_mint = ctx
+                        .read_post::<Address>(&minter_key)?
+                        .map(|m| {
+                            m == Address::Internal(InternalAddress::Airdrop)
+                        })
+                        .unwrap_or(false);
+                    if !is_airdrop_mint {
+                        tracing::debug!(
+                            "Minting/Burning native token isn't allowed"
+                        );
+                        return Err(Error::new_const(
+                            "Minting/Burning native token isn't allowed",
+                        ));
+                    }
                 }
 
                 let pre: Amount = ctx.read_pre(key)?.unwrap_or_default();
@@ -246,6 +256,7 @@ where
         token: &Address,
         verifiers: &BTreeSet<Address>,
     ) -> Result<()> {
+        let native_token = ctx.pre().get_native_token()?;
         match token {
             Address::Internal(InternalAddress::IbcToken(_)) => {
                 // Check if the minter is set
@@ -261,6 +272,23 @@ where
                     }
                     _ => Err(Error::new_const(
                         "Only the IBC account is able to mint IBC tokens",
+                    )),
+                }
+            }
+            _ if *token == native_token => {
+                // Allow native token minting via Airdrop
+                let minter_key = minter_key(token);
+                match ctx.read_post::<Address>(&minter_key)? {
+                    Some(minter)
+                        if minter
+                            == Address::Internal(InternalAddress::Airdrop) =>
+                    {
+                        verifiers.contains(&minter).ok_or_else(|| {
+                            Error::new_const("The Airdrop VP was not triggered")
+                        })
+                    }
+                    _ => Err(Error::new_const(
+                        "Only Airdrop can mint native tokens",
                     )),
                 }
             }
@@ -311,6 +339,10 @@ fn has_bal_inc_protocol_action(action: &Action, owner: Owner<'_>) -> bool {
         | Action::Gov(GovAction::InitProposal { .. }) => {
             owner == Owner::Protocol
         }
+        Action::Airdrop(AirdropAction::Claim { target, .. }) => match owner {
+            Owner::Account(owner) => target == owner,
+            Owner::Protocol => true,
+        },
         // NB: every other case is invalid
         _ => false,
     }

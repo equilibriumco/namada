@@ -33,8 +33,8 @@ use namada_sdk::tx::data::{
 use namada_sdk::tx::event::{MaspEvent, MaspEventKind, MaspTxRef};
 use namada_sdk::tx::{BatchedTxRef, IndexedTx, Tx, TxCommitments};
 use namada_sdk::validation::{
-    EthBridgeNutVp, EthBridgePoolVp, EthBridgeVp, GovernanceVp, IbcVp, MaspVp,
-    MultitokenVp, NativeVpCtx, ParametersVp, PgfVp, PosVp,
+    AirdropVp, EthBridgeNutVp, EthBridgePoolVp, EthBridgeVp, GovernanceVp,
+    IbcVp, MaspVp, MultitokenVp, NativeVpCtx, ParametersVp, PgfVp, PosVp,
 };
 use namada_sdk::{governance, parameters, state, storage, token};
 #[doc(inline)]
@@ -1460,6 +1460,13 @@ where
                                     (*internal_addr).clone(),
                                 ),
                             ),
+                            InternalAddress::Airdrop => AirdropVp::validate_tx(
+                                &ctx,
+                                batched_tx,
+                                &keys_changed,
+                                &verifiers,
+                            )
+                            .map_err(Error::NativeVpError),
                         }
                     }
                 };

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use borsh::BorshSerialize;
-use data::{Fee, GasLimit};
+use data::{Fee, GasLimit, airdrop};
 use masp_primitives::asset_type::AssetType;
 use masp_primitives::transaction::Transaction as MaspTransaction;
 use masp_primitives::transaction::builder::Builder;
@@ -125,6 +125,8 @@ pub const TX_UNBOND_WASM: &str = "tx_unbond.wasm";
 pub const TX_WITHDRAW_WASM: &str = "tx_withdraw.wasm";
 /// Claim-rewards WASM path
 pub const TX_CLAIM_REWARDS_WASM: &str = "tx_claim_rewards.wasm";
+/// Claim-airdrop WASM path
+pub const TX_CLAIM_AIRDROP_WASM: &str = "tx_claim_airdrop.wasm";
 /// Bridge pool WASM path
 pub const TX_BRIDGE_POOL_WASM: &str = "tx_bridge_pool.wasm";
 /// Change commission WASM path
@@ -1819,6 +1821,62 @@ pub async fn build_claim_rewards(
     }?;
 
     let data = pos::ClaimRewards { validator, source };
+
+    build(
+        context,
+        tx_args,
+        tx_code_path.clone(),
+        data,
+        do_nothing,
+        wrap_args,
+    )
+    .await
+    .map(|tx| (tx, signing_data))
+}
+
+/// Submit transaction to claim an airdrop
+pub async fn build_claim_airdrop(
+    context: &impl Namada,
+    args::ClaimAirdrop {
+        tx: tx_args,
+        source,
+        amount,
+        tx_code_path,
+    }: &args::ClaimAirdrop,
+) -> Result<(Tx, SigningData)> {
+    let default_signer = Some(source.clone());
+    let (signing_data, wrap_args, _) = derive_build_data(
+        context,
+        tx_args
+            .wrap_tx
+            .as_ref()
+            .map(|wrap_args| ExtendedWrapperArgs {
+                wrap_args,
+                disposable_gas_payer: false,
+            }),
+        tx_args.force,
+        default_signer,
+        tx_args.signing_keys.to_owned(),
+        vec![],
+    )
+    .await?;
+
+    // Check that the source address exists on chain
+    let source =
+        source_exists_or_err(source.clone(), tx_args.force, context).await?;
+
+    // Validate the amount given
+    let token = context.native_token();
+    let validated_amount =
+        validate_amount(context, *amount, &token, tx_args.force)
+            .await
+            .expect("expected to validate amount");
+
+    let data = airdrop::ClaimAirdrop {
+        target: source.clone(),
+        token,
+        amount: validated_amount.amount(),
+    };
 
     build(
         context,

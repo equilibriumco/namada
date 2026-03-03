@@ -5707,6 +5707,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "namada_airdrop"
+version = "0.251.0"
+dependencies = [
+ "namada_core",
+ "namada_trans_token",
+ "namada_tx",
+ "namada_vp_env",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "namada_apps"
 version = "201.0.0"
 dependencies = [
@@ -6296,6 +6308,7 @@ dependencies = [
  "masp_proofs",
  "nam-jubjub",
  "namada_account",
+ "namada_airdrop",
  "namada_core",
  "namada_ethereum_bridge",
  "namada_events",

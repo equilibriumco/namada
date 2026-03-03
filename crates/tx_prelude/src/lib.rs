@@ -13,6 +13,7 @@
 )]
 
 pub mod account;
+pub mod airdrop;
 pub mod ibc;
 pub mod key;
 pub mod pgf;

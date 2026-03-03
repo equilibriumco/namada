@@ -98,6 +98,9 @@ pub type EthBridgePoolVp<'ctx, CTX> =
 pub type EthBridgeNutVp<'ctx, CTX> =
     eth_bridge::vp::NonUsableTokens<'ctx, CTX, TokenKeys>;
 
+/// Native Airdrop VP
+pub type AirdropVp<'ctx, CTX> = namada_airdrop::vp::AirdropVp<'ctx, CTX>;
+
 /// Governance store implementation over the native prior context
 pub type GovPreStore<'a, S, CA> =
     governance::Store<CtxPreStorageRead<'a, 'a, S, VpCache<CA>, Eval<S, CA>>>;
