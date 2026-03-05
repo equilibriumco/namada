@@ -468,6 +468,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d965446196e3b7decd44aa7ee49e31d630118f90ef12f97900f262eb915c951d"
 
 [[package]]
+name = "bellman"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9afceed28bac7f9f5a508bca8aeeff51cdfa4770c0b967ac55c621e2ddfd6171"
+dependencies = [
+ "bitvec",
+ "blake2s_simd",
+ "byteorder",
+ "crossbeam-channel",
+ "ff",
+ "group",
+ "lazy_static",
+ "log",
+ "num_cpus",
+ "pairing",
+ "rand_core",
+ "rayon",
+ "subtle",
+]
+
+[[package]]
 name = "bellpepper-core"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -657,6 +678,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7bc6d6292be3a19e6379786dac800f551e5865a5bb51ebbe3064ab80433f403"
 dependencies = [
  "ff",
+ "group",
+ "pairing",
  "rand_core",
  "subtle",
 ]
@@ -1689,7 +1712,7 @@ dependencies = [
  "chrono",
  "rust_decimal",
  "serde",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "time",
  "winnow 0.6.26",
 ]
@@ -2503,7 +2526,7 @@ dependencies = [
  "rand_core",
  "serde",
  "serdect",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "thiserror-nostd-notrait",
  "visibility",
  "zeroize",
@@ -4220,7 +4243,7 @@ dependencies = [
  "borsh",
  "incrementalmerkletree",
  "slab",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4641,7 +4664,7 @@ dependencies = [
  "pasta_curves",
  "rand_core",
  "serde",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "zeroize",
 ]
 
@@ -4703,9 +4726,10 @@ dependencies = [
  "namada_vp_env",
  "serde",
  "serde_json",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
  "zair-core",
+ "zair-sapling-proofs",
 ]
 
 [[package]]
@@ -4714,7 +4738,7 @@ version = "0.251.0"
 dependencies = [
  "namada_core",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4756,7 +4780,7 @@ dependencies = [
  "smooth-operator",
  "tendermint 0.40.3",
  "tendermint-proto 0.40.3",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tiny-keccak",
  "tokio",
  "tracing",
@@ -4791,7 +4815,7 @@ dependencies = [
  "namada_vp_env",
  "serde",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -4804,7 +4828,7 @@ dependencies = [
  "namada_macros",
  "serde",
  "serde_json",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -4817,7 +4841,7 @@ dependencies = [
  "namada_events",
  "namada_macros",
  "serde",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4839,7 +4863,7 @@ dependencies = [
  "serde",
  "serde_json",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -4875,7 +4899,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -4887,7 +4911,7 @@ dependencies = [
  "kdam",
  "namada_core",
  "tendermint-rpc",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tokio",
 ]
 
@@ -4913,7 +4937,7 @@ dependencies = [
  "namada_core",
  "namada_macros",
  "prost",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4927,7 +4951,7 @@ dependencies = [
  "namada_tx",
  "namada_vp_env",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4950,7 +4974,7 @@ dependencies = [
  "proptest",
  "serde",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -5024,7 +5048,7 @@ dependencies = [
  "smooth-operator",
  "tempfile",
  "tendermint-rpc",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tiny-bip39",
  "tokio",
  "toml",
@@ -5070,7 +5094,7 @@ dependencies = [
  "sha2 0.10.8",
  "smooth-operator",
  "tempfile",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
  "typed-builder",
  "xorf",
@@ -5095,7 +5119,7 @@ dependencies = [
  "patricia_tree",
  "proptest",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -5113,7 +5137,7 @@ dependencies = [
  "regex",
  "serde",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -5202,7 +5226,7 @@ dependencies = [
  "namada_tx",
  "namada_tx_env",
  "namada_vp_env",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -5230,8 +5254,9 @@ dependencies = [
  "rand_core",
  "serde",
  "serde_json",
+ "serde_with",
  "sha2 0.10.8",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tonic-build",
  "zair-core",
 ]
@@ -5288,7 +5313,7 @@ dependencies = [
  "rayon",
  "smooth-operator",
  "tempfile",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
  "wasmer",
  "wasmer-cache",
@@ -5326,7 +5351,7 @@ dependencies = [
  "namada_tx",
  "namada_vp_env",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tracing",
 ]
 
@@ -5387,7 +5412,7 @@ dependencies = [
  "serde",
  "slip10_ed25519",
  "smooth-operator",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "tiny-bip39",
  "toml",
  "zeroize",
@@ -7298,7 +7323,7 @@ checksum = "297f631f50729c8c99b84667867963997ec0b50f32b2a7dbcab828ef0541e8bb"
 dependencies = [
  "num-bigint",
  "num-traits",
- "thiserror 2.0.12",
+ "thiserror 2.0.18",
  "time",
 ]
 
@@ -7874,11 +7899,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.12"
+version = "2.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
+checksum = "4288b5bcbc7920c07a1149a35cf9590a2aa808e0bc1eafaade0b80947865fbc4"
 dependencies = [
- "thiserror-impl 2.0.12",
+ "thiserror-impl 2.0.18",
 ]
 
 [[package]]
@@ -7894,9 +7919,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.12"
+version = "2.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
+checksum = "ebc4ee7f67670e9b64d05fa4253e753e016c6c95ff35b89b7941d6b856dec1d5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9544,6 +9569,7 @@ dependencies = [
 [[package]]
 name = "zair-core"
 version = "0.1.0"
+source = "git+https://github.com/eigerco/zair#4825b6bc9918ba9736e77a3731f73933cf48191c"
 dependencies = [
  "bytemuck",
  "schemars 1.2.1",
@@ -9551,6 +9577,18 @@ dependencies = [
  "serde_with",
  "sha2 0.10.8",
  "zip32",
+]
+
+[[package]]
+name = "zair-sapling-proofs"
+version = "0.1.0"
+source = "git+https://github.com/eigerco/zair#4825b6bc9918ba9736e77a3731f73933cf48191c"
+dependencies = [
+ "bellman",
+ "bls12_381",
+ "jubjub",
+ "thiserror 2.0.18",
+ "zair-core",
 ]
 
 [[package]]

@@ -22,3 +22,4 @@ serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 zair-core.workspace = true
+zair-sapling-proofs.workspace = true

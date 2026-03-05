@@ -1901,6 +1901,8 @@ pub struct ClaimAirdrop<C: NamadaTypes = SdkTypes> {
     pub source: C::Address,
     /// Amount to claim
     pub amount: InputAmount,
+    /// Path to the claim data file containing ZAIR zk proofs
+    pub claim_data_file: PathBuf,
     /// Path to the TX WASM code file
     pub tx_code_path: PathBuf,
 }

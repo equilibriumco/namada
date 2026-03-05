@@ -15,6 +15,7 @@ use namada_core::storage::KeySeg;
 use namada_core::token::Amount;
 use namada_core::{address, storage};
 
+pub use crate::data::airdrop::ClaimProofsOutput;
 pub use crate::data::pos::{
     Bond, ClaimRewards, Redelegation, Unbond, Withdraw,
 };
@@ -86,6 +87,8 @@ pub enum AirdropAction {
         target: Address,
         /// Amount to claim
         amount: Amount,
+        /// Claim data containing ZAIR zk proofs
+        claim_data: ClaimProofsOutput,
     },
 }
 
