@@ -12,12 +12,16 @@ use namada_tx::data::airdrop::{
 };
 use namada_vp_env::{Error, Result, VpEnv};
 use thiserror::Error;
-use zair_sapling_proofs::verifier::{
-    ValueCommitmentScheme, VerificationError, VerifyingKey,
-    prepare_verifying_key, verify_claim_proof_bytes,
+use zair_orchard_proofs::{
+    ValueCommitmentScheme as OrchardValueCommitmentScheme,
+    read_params_from_bytes, verify_claim_proof as verify_orchard_proof,
+};
+use zair_sapling_proofs::{
+    ValueCommitmentScheme as SaplingValueCommitmentScheme, VerifyingKey,
+    prepare_verifying_key, verify_claim_proof_bytes as verify_sapling_proof,
 };
 
-use crate::storage_key::sapling;
+use crate::storage_key::{orchard, sapling};
 
 #[derive(Error, Debug)]
 pub enum VpError {
@@ -27,17 +31,24 @@ pub enum VpError {
     NoAction,
 
     #[error("zk proof verification failed: {0}")]
-    ZkProofVerificationFailed(VerificationError),
+    ZkProofVerificationFailed(String),
 
     #[error("Missing verifying key in storage")]
     MissingVerifyingKey,
     #[error("Invalid verifying key: {0}")]
     InvalidVerifyingKey(String),
 
+    #[error("Missing orchard parameters in storage")]
+    MissingOrchardParameters,
+    #[error("Invalid orchard parameters: {0}")]
+    InvalidOrchardParameters(String),
+
     #[error("Missing sapling note commitment root in storage")]
     MissingNoteCommitmentRoot,
     #[error("Missing sapling nullifier gap root in storage")]
     MissingNullifierGapRoot,
+    #[error("Missing target id in storage")]
+    MissingTargetId,
     #[error("Missing sapling value commitment scheme in storage")]
     MissingValueCommitmentScheme,
 
@@ -95,7 +106,7 @@ where
     }
 }
 
-/// Verifies all Sapling zk proof for a claim.
+/// Verifies all Sapling zk proofs for a claim.
 fn verify_sapling_zk_proofs<'ctx, CTX>(
     ctx: &'ctx CTX,
     sapling_proofs: &[SaplingClaimProofResult],
@@ -136,8 +147,8 @@ where
         .ok_or(VpError::MissingValueCommitmentScheme)?;
 
     let scheme = match scheme_id {
-        0 => ValueCommitmentScheme::Native,
-        1 => ValueCommitmentScheme::Sha256,
+        0 => SaplingValueCommitmentScheme::Native,
+        1 => SaplingValueCommitmentScheme::Sha256,
         n => {
             return Err(
                 VpError::InvalidValueCommitmentScheme(n.to_string()).into()
@@ -147,7 +158,7 @@ where
 
     // Finally, verify the proofs sequentially.
     for proof in sapling_proofs {
-        verify_claim_proof_bytes(
+        verify_sapling_proof(
             &pvk,
             &proof.zkproof,
             scheme,
@@ -158,22 +169,83 @@ where
             &proof.airdrop_nullifier,
             &nullifier_gap_root_bytes,
         )
-        .map_err(|e| VpError::ZkProofVerificationFailed(e))?;
+        .map_err(|e| VpError::ZkProofVerificationFailed(e.to_string()))?;
     }
 
     Ok(())
 }
 
-/// Verifies all Orchard zk proofs for a claim.
+// Verifies all Orchard zk proof for a claim.
 fn verify_orchard_zk_proofs<'ctx, CTX>(
-    _ctx: &'ctx CTX,
+    ctx: &'ctx CTX,
     orchard_proofs: &[OrchardClaimProofResult],
 ) -> Result<()>
 where
     CTX: VpEnv<'ctx> + namada_tx::action::Read<Err = Error>,
 {
-    for _orchard_proof in orchard_proofs {
-        tracing::debug!("Orchard proof verification not implemented yet");
+    // Read orchard parameters from storage.
+    let params_bytes: Vec<u8> = ctx
+        .read_bytes_post(&orchard::parameters())?
+        .ok_or(VpError::MissingOrchardParameters)?;
+
+    let params = read_params_from_bytes(&params_bytes)
+        .map_err(|e| VpError::InvalidOrchardParameters(e.to_string()))?;
+
+    // Read note commitment root from storage.
+    let note_commitment_root_bytes: [u8; 32] = ctx
+        .read_bytes_post(&orchard::note_commitment_root_key())?
+        .ok_or(VpError::MissingNoteCommitmentRoot)?
+        .try_into()
+        .map_err(|_| {
+            VpError::InvalidBytes("note_commitment_root".to_string())
+        })?;
+
+    // Read nullifier gap root from storage.
+    let nullifier_gap_root_bytes: [u8; 32] = ctx
+        .read_bytes_post(&orchard::nullifier_gap_root_key())?
+        .ok_or(VpError::MissingNullifierGapRoot)?
+        .try_into()
+        .map_err(|_| VpError::InvalidBytes("nullifier_gap_root".to_string()))?;
+
+    // Read target id from storage.
+    let target_id: Vec<u8> = ctx
+        .read_bytes_post(&orchard::target_id_key())?
+        .ok_or(VpError::MissingTargetId)?
+        .try_into()
+        .map_err(|_| VpError::InvalidBytes("target_id".to_string()))?;
+
+    // Read value commitment scheme from storage.
+    let scheme_id: u8 = ctx
+        .read_bytes_post(&orchard::value_commitment_scheme_key())?
+        .ok_or(VpError::MissingValueCommitmentScheme)?
+        .pop()
+        .ok_or(VpError::MissingValueCommitmentScheme)?;
+
+    let scheme = match scheme_id {
+        0 => OrchardValueCommitmentScheme::Native,
+        1 => OrchardValueCommitmentScheme::Sha256,
+        n => {
+            return Err(
+                VpError::InvalidValueCommitmentScheme(n.to_string()).into()
+            );
+        }
+    };
+
+    // Finally, verify the proofs.
+    for proof in orchard_proofs {
+        verify_orchard_proof(
+            &params,
+            &proof.zkproof,
+            &proof.cv,
+            &proof.cv_sha256,
+            &proof.airdrop_nullifier,
+            &proof.rk,
+            &note_commitment_root_bytes,
+            &nullifier_gap_root_bytes,
+            scheme,
+            &target_id,
+        )
+        .map_err(|e| VpError::ZkProofVerificationFailed(e.to_string()))?;
     }
 
     Ok(())

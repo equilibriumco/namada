@@ -111,6 +111,10 @@ fn init_orchard_storage<S: StorageWrite>(
         &orchard_snapshot.nullifier_gap_root,
     )?;
 
+    // Write target id.
+    storage
+        .write_bytes(&orchard::target_id_key(), &orchard_snapshot.target_id)?;
+
     // Write value commitment scheme
     let scheme = match orchard_snapshot.value_commitment_scheme {
         ValueCommitmentScheme::Native => 0u8,

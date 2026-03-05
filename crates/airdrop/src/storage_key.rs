@@ -67,6 +67,8 @@ pub mod orchard {
     const AIRDROP_ORCHARD_KEY: &str = "orchard";
     /// Key segment for parameters.
     pub const PARAMETERS_KEY: &str = "parameters";
+    /// Key segment for target id.
+    pub const TARGET_ID_KEY: &str = "target_id";
 
     /// Gets a key for the Orchard parameters storage.
     pub fn parameters() -> storage::Key {
@@ -92,6 +94,15 @@ pub mod orchard {
             .push(&AIRDROP_ORCHARD_KEY.to_owned())
             .expect("Cannot obtain a storage key")
             .push(&NULLIFIER_GAP_ROOT_KEY.to_owned())
+            .expect("Cannot obtain a storage key")
+    }
+
+    /// Gets a key for the Orchard target id storage.
+    pub fn target_id_key() -> storage::Key {
+        storage::Key::from(ADDRESS.to_db_key())
+            .push(&AIRDROP_ORCHARD_KEY.to_owned())
+            .expect("Cannot obtain a storage key")
+            .push(&TARGET_ID_KEY.to_owned())
             .expect("Cannot obtain a storage key")
     }
 
