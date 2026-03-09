@@ -12,7 +12,6 @@ use namada_core::address::Address;
 use namada_core::borsh::{BorshDeserialize, BorshSerialize};
 use namada_core::masp::MaspTxId;
 use namada_core::storage::KeySeg;
-use namada_core::token::Amount;
 use namada_core::{address, storage};
 
 pub use crate::data::airdrop::ClaimProofsOutput;
@@ -83,11 +82,9 @@ pub enum MaspAction {
 pub enum AirdropAction {
     /// Claim airdrop tokens
     Claim {
-        /// Target address receiving the airdrop
+        /// Target address for claim.
         target: Address,
-        /// Amount to claim
-        amount: Amount,
-        /// Claim data containing ZAIR zk proofs
+        /// Claim data containing ZAIR zk proofs, each paired with its message.
         claim_data: ClaimProofsOutput,
     },
 }

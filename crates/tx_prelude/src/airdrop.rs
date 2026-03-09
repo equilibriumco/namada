@@ -2,7 +2,6 @@
 
 use namada_airdrop::storage::reveal_nullifier;
 use namada_core::address::{Address, InternalAddress};
-use namada_core::token::Amount;
 use namada_token;
 use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput, Write};
 
@@ -12,9 +11,8 @@ impl Ctx {
     /// Claim airdrop tokens
     pub fn claim_airdrop(
         &mut self,
-        target: &Address,
         token_addr: &Address,
-        amount: Amount,
+        target: &Address,
         claim_data: ClaimProofsOutput,
     ) -> TxResult {
         self.insert_verifier(&Address::Internal(InternalAddress::Airdrop))?;
@@ -26,18 +24,19 @@ impl Ctx {
 
         self.push_action(Action::Airdrop(AirdropAction::Claim {
             target: target.clone(),
-            amount,
-            claim_data,
+            claim_data: claim_data.clone(),
         }))?;
 
-        // Mint tokens with Airdrop as minter
-        namada_token::mint_tokens(
-            self,
-            &Address::Internal(InternalAddress::Airdrop),
-            token_addr,
-            target,
-            amount,
-        )?;
+        // Mint tokens for each proof's message
+        for message in claim_data.message_iter() {
+            namada_token::mint_tokens(
+                self,
+                &Address::Internal(InternalAddress::Airdrop),
+                token_addr,
+                &message.target,
+                message.amount,
+            )?;
+        }
 
         Ok(())
     }

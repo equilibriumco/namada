@@ -3476,6 +3476,7 @@ pub mod args {
     pub const ALLOW_DUPLICATE_IP: ArgFlag = flag("allow-duplicate-ip");
     pub const AMOUNT: Arg<token::DenominatedAmount> = arg("amount");
     pub const ARCHIVE_DIR: ArgOpt<PathBuf> = arg_opt("archive-dir");
+    pub const RCV: Arg<String> = arg("rcv");
     pub const AVATAR_OPT: ArgOpt<String> = arg_opt("avatar");
     pub const BALANCE_OWNER: Arg<WalletBalanceOwner> = arg("owner");
     pub const BASE_DIR: ArgDefault<PathBuf> = arg_default(
@@ -3629,7 +3630,6 @@ pub mod args {
         arg_default("max-concurrent-fetches", DefaultFn(|| 100));
     pub const MAX_ETH_GAS: ArgOpt<u64> = arg_opt("max_eth-gas");
     pub const MEMO_OPT: ArgOpt<String> = arg_opt("memo");
-    pub const CLAIM_DATA_PATH: Arg<PathBuf> = arg("claim-data-path");
     pub const MIGRATION_PATH: ArgOpt<PathBuf> = arg_opt("migration-path");
     pub const MINIMUM_AMOUNT: ArgOpt<token::DenominatedAmount> =
         arg_opt("minimum-amount");
@@ -3785,6 +3785,8 @@ pub mod args {
         }),
     );
     pub const DEVICE_TRANSPORT_ENV_VAR: &str = "NAMADA_DEVICE_TRANSPORT";
+    pub const ZAIR_PROOFS_FILE: Arg<PathBuf> = arg("proofs-file");
+    pub const ZAIR_MESSAGES_FILE: Arg<PathBuf> = arg("messages-file");
 
     /// Global command arguments
     #[derive(Clone, Debug)]
@@ -6620,8 +6622,8 @@ pub mod args {
             Ok(ClaimAirdrop::<SdkTypes> {
                 tx,
                 source: chain_ctx.get(&self.source),
-                amount: self.amount,
-                claim_data_file: self.claim_data_file,
+                proofs_file: self.proofs_file,
+                messages_file: self.messages_file,
                 tx_code_path: self.tx_code_path.to_path_buf(),
             })
         }
@@ -6631,15 +6633,14 @@ pub mod args {
         fn parse(matches: &ArgMatches) -> Self {
             let tx = Tx::parse(matches);
             let source = SOURCE.parse(matches);
-            let raw_amount = AMOUNT.parse(matches);
-            let amount = InputAmount::Unvalidated(raw_amount);
-            let claim_data_file = CLAIM_DATA_PATH.parse(matches);
+            let proofs_file = ZAIR_PROOFS_FILE.parse(matches);
+            let messages_file = ZAIR_MESSAGES_FILE.parse(matches);
             let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
             Self {
                 tx,
                 source,
-                amount,
-                claim_data_file,
+                proofs_file,
+                messages_file,
                 tx_code_path,
             }
         }
@@ -6647,12 +6648,12 @@ pub mod args {
         fn def(app: App) -> App {
             app.add_args::<Tx<CliTypes>>()
                 .arg(SOURCE.def().help(wrap!("Source address.")))
-                .arg(
-                    AMOUNT.def().help(wrap!("The amount to claim in decimal.")),
-                )
-                .arg(CLAIM_DATA_PATH.def().help(wrap!(
-                    "Path to JSON file containing ZAIR claim data and zk \
-                     proofs."
+                .arg(ZAIR_PROOFS_FILE.def().help(wrap!(
+                    "Path to the JSON file containing ZAIR proofs."
+                )))
+                .arg(ZAIR_MESSAGES_FILE.def().help(wrap!(
+                    "Path to the JSON messages file with claim data paired by \
+                     nullifier."
                 )))
         }
     }

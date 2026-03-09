@@ -9,7 +9,7 @@ use namada_core::storage::Key;
 use namada_tx::BatchedTxRef;
 use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput};
 use namada_tx::data::airdrop::{
-    OrchardClaimProofResult, SaplingClaimProofResult,
+    OrchardClaimProof, SaplingClaimProof, util::reversed_hex_encode,
 };
 use namada_vp_env::{Error, Result, VpEnv};
 use thiserror::Error;
@@ -25,7 +25,6 @@ use zair_sapling_proofs::{
 use crate::storage_key::{
     airdrop_nullifier_key, is_airdrop_nullifier_key, orchard, sapling,
 };
-use crate::utils::reversed_hex_encode;
 
 #[derive(Error, Debug)]
 pub enum VpError {
@@ -101,10 +100,9 @@ where
             if let Action::Airdrop(AirdropAction::Claim {
                 target,
                 claim_data,
-                ..
             }) = action
             {
-                if !verifiers.contains(target) {
+                if !verifiers.contains(&target) {
                     return Err(VpError::Unauthorized(target.clone()).into());
                 }
 
@@ -186,7 +184,7 @@ where
 /// Verifies all Sapling zk proofs for a claim.
 fn verify_sapling_zk_proofs<'ctx, CTX>(
     ctx: &'ctx CTX,
-    sapling_proofs: &[SaplingClaimProofResult],
+    sapling_proofs: &[SaplingClaimProof],
 ) -> Result<()>
 where
     CTX: VpEnv<'ctx> + namada_tx::action::Read<Err = Error>,
@@ -234,7 +232,7 @@ where
     };
 
     // Finally, verify the proofs sequentially.
-    for proof in sapling_proofs {
+    for SaplingClaimProof { proof, .. } in sapling_proofs {
         verify_sapling_proof(
             &pvk,
             &proof.zkproof,
@@ -255,7 +253,7 @@ where
 // Verifies all Orchard zk proof for a claim.
 fn verify_orchard_zk_proofs<'ctx, CTX>(
     ctx: &'ctx CTX,
-    orchard_proofs: &[OrchardClaimProofResult],
+    orchard_proofs: &[OrchardClaimProof],
 ) -> Result<()>
 where
     CTX: VpEnv<'ctx> + namada_tx::action::Read<Err = Error>,
@@ -309,7 +307,7 @@ where
     };
 
     // Finally, verify the proofs.
-    for proof in orchard_proofs {
+    for OrchardClaimProof { proof, .. } in orchard_proofs {
         verify_orchard_proof(
             &params,
             &proof.zkproof,
