@@ -1,8 +1,9 @@
 //! Airdrop storage keys.
 
-use crate::ADDRESS;
 use namada_core::storage::{self, KeySeg};
 use namada_storage::DbKeySeg;
+
+use crate::ADDRESS;
 
 /// Key segment for note commitment root.
 pub const NOTE_COMMITMENT_ROOT_KEY: &str = "note_commitment_root";

@@ -22,12 +22,10 @@ use zair_sapling_proofs::{
     prepare_verifying_key, verify_claim_proof_bytes as verify_sapling_proof,
 };
 
-use crate::{
-    storage_key::{
-        airdrop_nullifier_key, is_airdrop_nullifier_key, orchard, sapling,
-    },
-    utils::reversed_hex_encode,
+use crate::storage_key::{
+    airdrop_nullifier_key, is_airdrop_nullifier_key, orchard, sapling,
 };
+use crate::utils::reversed_hex_encode;
 
 #[derive(Error, Debug)]
 pub enum VpError {
@@ -123,7 +121,8 @@ where
             }
         }
 
-        // Final sanity check that nullifiers were revealed and only expected keys were written.
+        // Final sanity check that nullifiers were revealed and only expected
+        // keys were written.
         if revealed_nullifiers.is_empty() {
             return Err(VpError::NoAction.into());
         }

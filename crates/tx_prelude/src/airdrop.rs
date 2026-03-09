@@ -4,8 +4,7 @@ use namada_airdrop::storage::reveal_nullifier;
 use namada_core::address::{Address, InternalAddress};
 use namada_core::token::Amount;
 use namada_token;
-use namada_tx::action::ClaimProofsOutput;
-use namada_tx::action::{Action, AirdropAction, Write};
+use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput, Write};
 
 use super::*;
 

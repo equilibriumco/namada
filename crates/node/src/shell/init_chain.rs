@@ -15,7 +15,7 @@ use namada_sdk::state::StorageWrite;
 use namada_sdk::time::{TimeZone, Utc};
 use namada_sdk::token::storage_key::masp_token_map_key;
 use namada_sdk::token::{credit_tokens, write_denom};
-use namada_sdk::{eth_bridge, ibc, airdrop};
+use namada_sdk::{airdrop, eth_bridge, ibc};
 use namada_vm::validate_untrusted_wasm;
 
 use super::*;
@@ -305,11 +305,8 @@ where
                 "Initializing airdrop storage from {}",
                 airdrop_dir.display()
             );
-            airdrop::storage::init_storage(
-                &mut self.state,
-                &airdrop_dir,
-            )
-            .expect("Failed to initialize airdrop storage");
+            airdrop::storage::init_storage(&mut self.state, &airdrop_dir)
+                .expect("Failed to initialize airdrop storage");
         }
 
         ControlFlow::Continue(())

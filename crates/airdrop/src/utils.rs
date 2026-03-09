@@ -11,7 +11,8 @@ const fn reverse_bytes<const N: usize>(input: &[u8; N]) -> [u8; N] {
     output
 }
 
-/// Helper function for encoding and reversing a hex string, used for displaying airdrop nullifiers.
+/// Helper function for encoding and reversing a hex string, used for displaying
+/// airdrop nullifiers.
 ///
 /// # Returns
 ///

@@ -2,7 +2,8 @@ use namada_core::address::Address;
 use namada_core::borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
 use namada_core::token::Amount;
 use serde::{Deserialize, Serialize};
-use serde_with::{hex::Hex, serde_as};
+use serde_with::hex::Hex;
+use serde_with::serde_as;
 use zair_core::base::ReversedHex;
 
 /// Output format for claim proofs.
@@ -27,7 +28,9 @@ pub struct ClaimProofsOutput {
 impl ClaimProofsOutput {
     /// Returns an iterator over the airdrop nullifiers of the proofs.
     pub fn nullifier_iter(&self) -> impl Iterator<Item = &[u8; 32]> {
-        self.sapling_proofs.iter().map(|p| &p.airdrop_nullifier)
+        self.sapling_proofs
+            .iter()
+            .map(|p| &p.airdrop_nullifier)
             .chain(self.orchard_proofs.iter().map(|p| &p.airdrop_nullifier))
     }
 }
@@ -94,7 +97,8 @@ pub struct OrchardClaimProofResult {
     #[serde_as(as = "Option<Hex>")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cv_sha256: Option<[u8; 32]>,
-    /// The airdrop nullifier (airdrop-specific nullifier for double-claim prevention).
+    /// The airdrop nullifier (airdrop-specific nullifier for double-claim
+    /// prevention).
     #[serde_as(as = "ReversedHex")]
     pub airdrop_nullifier: [u8; 32],
 }
@@ -131,7 +135,7 @@ pub mod tests {
     use proptest::prop_compose;
 
     use super::*;
-    
+
     prop_compose! {
         /// Generate an arbitrary claim proofs output.
         pub fn arb_claim_data()(
@@ -141,7 +145,7 @@ pub mod tests {
             ClaimProofsOutput { sapling_proofs, orchard_proofs }
         }
     }
-    
+
     prop_compose! {
         /// Generate an arbitrary Sapling claim proof.
         pub fn arb_sapling_claim_proof()(
@@ -159,7 +163,7 @@ pub mod tests {
             }
         }
     }
-    
+
     prop_compose! {
         /// Generate an arbitrary Orchard claim proof.
         pub fn arb_orchard_claim_proof()(

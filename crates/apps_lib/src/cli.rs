@@ -6651,7 +6651,8 @@ pub mod args {
                     AMOUNT.def().help(wrap!("The amount to claim in decimal.")),
                 )
                 .arg(CLAIM_DATA_PATH.def().help(wrap!(
-                    "Path to JSON file containing ZAIR claim data and zk proofs."
+                    "Path to JSON file containing ZAIR claim data and zk \
+                     proofs."
                 )))
         }
     }
