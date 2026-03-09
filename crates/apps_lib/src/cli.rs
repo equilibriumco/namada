@@ -3476,7 +3476,6 @@ pub mod args {
     pub const ALLOW_DUPLICATE_IP: ArgFlag = flag("allow-duplicate-ip");
     pub const AMOUNT: Arg<token::DenominatedAmount> = arg("amount");
     pub const ARCHIVE_DIR: ArgOpt<PathBuf> = arg_opt("archive-dir");
-    pub const RCV: Arg<String> = arg("rcv");
     pub const AVATAR_OPT: ArgOpt<String> = arg_opt("avatar");
     pub const BALANCE_OWNER: Arg<WalletBalanceOwner> = arg("owner");
     pub const BASE_DIR: ArgDefault<PathBuf> = arg_default(
@@ -3785,8 +3784,8 @@ pub mod args {
         }),
     );
     pub const DEVICE_TRANSPORT_ENV_VAR: &str = "NAMADA_DEVICE_TRANSPORT";
-    pub const ZAIR_PROOFS_FILE: Arg<PathBuf> = arg("proofs-file");
-    pub const ZAIR_MESSAGES_FILE: Arg<PathBuf> = arg("messages-file");
+    pub const ZAIR_CLAIM_FILE: Arg<PathBuf> = arg("claim-file-path");
+    pub const ZAIR_MESSAGES_FILE: Arg<PathBuf> = arg("messages-file-path");
 
     /// Global command arguments
     #[derive(Clone, Debug)]
@@ -6622,7 +6621,7 @@ pub mod args {
             Ok(ClaimAirdrop::<SdkTypes> {
                 tx,
                 source: chain_ctx.get(&self.source),
-                proofs_file: self.proofs_file,
+                claim_file: self.claim_file,
                 messages_file: self.messages_file,
                 tx_code_path: self.tx_code_path.to_path_buf(),
             })
@@ -6633,13 +6632,13 @@ pub mod args {
         fn parse(matches: &ArgMatches) -> Self {
             let tx = Tx::parse(matches);
             let source = SOURCE.parse(matches);
-            let proofs_file = ZAIR_PROOFS_FILE.parse(matches);
+            let claim_file = ZAIR_CLAIM_FILE.parse(matches);
             let messages_file = ZAIR_MESSAGES_FILE.parse(matches);
             let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
             Self {
                 tx,
                 source,
-                proofs_file,
+                claim_file,
                 messages_file,
                 tx_code_path,
             }
@@ -6648,12 +6647,11 @@ pub mod args {
         fn def(app: App) -> App {
             app.add_args::<Tx<CliTypes>>()
                 .arg(SOURCE.def().help(wrap!("Source address.")))
-                .arg(ZAIR_PROOFS_FILE.def().help(wrap!(
+                .arg(ZAIR_CLAIM_FILE.def().help(wrap!(
                     "Path to the JSON file containing ZAIR proofs."
                 )))
                 .arg(ZAIR_MESSAGES_FILE.def().help(wrap!(
-                    "Path to the JSON messages file with claim data paired by \
-                     nullifier."
+                    "Path to the JSON file containing ZAIR messages."
                 )))
         }
     }

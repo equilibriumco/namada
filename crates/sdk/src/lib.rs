@@ -539,12 +539,12 @@ pub trait Namada: NamadaIo {
     fn new_claim_airdrop(
         &self,
         source: Address,
-        proofs_file: PathBuf,
+        claim_file: PathBuf,
         messages_file: PathBuf,
     ) -> args::ClaimAirdrop {
         args::ClaimAirdrop {
             source,
-            proofs_file,
+            claim_file,
             messages_file,
             tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),

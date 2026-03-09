@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use borsh::BorshSerialize;
+use data::airdrop::{ClaimAirdrop, ClaimMessagesInputFile, ClaimProofsInputFile, ClaimProofsOutput};
 use data::{Fee, GasLimit, airdrop};
 use masp_primitives::asset_type::AssetType;
 use masp_primitives::transaction::Transaction as MaspTransaction;
@@ -1840,7 +1841,7 @@ pub async fn build_claim_airdrop(
     args::ClaimAirdrop {
         tx: tx_args,
         source,
-        proofs_file,
+        claim_file,
         messages_file,
         tx_code_path,
     }: &args::ClaimAirdrop,
@@ -1867,9 +1868,9 @@ pub async fn build_claim_airdrop(
         source_exists_or_err(source.clone(), tx_args.force, context).await?;
 
     // Read and decode the proofs file.
-    let proofs_str = fs::read_to_string(&proofs_file)
+    let proofs_str = fs::read_to_string(&claim_file)
         .map_err(|e| Error::Other(format!("Error reading proofs file: {e}")))?;
-    let proofs: airdrop::ClaimProofsInputFile =
+    let proofs: ClaimProofsInputFile =
         serde_json::from_str(&proofs_str).map_err(|e| {
             Error::Encode(EncodingError::Decoding(e.to_string()))
         })?;
@@ -1878,19 +1879,19 @@ pub async fn build_claim_airdrop(
     let messages_str = fs::read_to_string(&messages_file).map_err(|e| {
         Error::Other(format!("Error reading messages file: {e}"))
     })?;
-    let messages: airdrop::ClaimMessagesInputFile =
+    let messages: ClaimMessagesInputFile =
         serde_json::from_str(&messages_str).map_err(|e| {
             Error::Encode(EncodingError::Decoding(e.to_string()))
         })?;
 
     let claim_data =
-        airdrop::ClaimProofsOutput::from_input_files(proofs, messages)
+        ClaimProofsOutput::from_input_files(proofs, messages)
             .map_err(|e| {
                 Error::Encode(EncodingError::Decoding(e.to_string()))
             })?;
 
     let token = context.native_token();
-    let data = airdrop::ClaimAirdrop {
+    let data = ClaimAirdrop {
         token,
         target: source,
         claim_data,

@@ -221,7 +221,6 @@ fn check_sha256_value_commitment(
     cv: &[u8; 32],
     Message { amount, rcv, .. }: &Message,
 ) -> Result<()> {
-    // Note: ZAIR computes the value commitment with only 64 bits.
     let computed_cv = compute_cv_sha256(*amount, *rcv);
     if computed_cv != *cv {
         return Err(VpError::ValueCommitmentMismatch.into());
