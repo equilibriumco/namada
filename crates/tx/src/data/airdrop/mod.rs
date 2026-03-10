@@ -188,11 +188,7 @@ impl ClaimProofsOutput {
         self.sapling
             .iter()
             .map(|p| &p.proof.airdrop_nullifier)
-            .chain(
-                self.orchard
-                    .iter()
-                    .map(|p| &p.proof.airdrop_nullifier),
-            )
+            .chain(self.orchard.iter().map(|p| &p.proof.airdrop_nullifier))
     }
 
     /// Returns an iterator over all messages.

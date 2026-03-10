@@ -2,16 +2,15 @@
 
 use namada_tx::data::airdrop::{SaplingClaimProof, SaplingSignedClaim};
 use namada_vp_env::{Error, Result, VpEnv};
-use zair_core::base::{signature_digest, Pool};
+use zair_core::base::{Pool, signature_digest};
 use zair_sapling_proofs::{
     ValueCommitmentScheme as SaplingValueCommitmentScheme, VerifyingKey,
     hash_sapling_proof_fields, prepare_verifying_key,
     verify_claim_proof_bytes as verify_sapling_proof,
 };
 
+use super::{VpError, check_message_hash, check_sha256_value_commitment};
 use crate::storage_key::sapling as sapling_key;
-
-use super::{check_message_hash, check_sha256_value_commitment, VpError};
 
 /// Checks that the Sapling proof hash is valid.
 fn check_proof_hash(
@@ -35,15 +34,15 @@ fn check_proof_hash(
 
 /// Verifies that the Sapling spend-auth signature is valid.
 fn verify_signature(
-    pool: Pool,
     target_id: &[u8],
     proof_hash: &[u8; 32],
     message_hash: &[u8; 32],
     rk_bytes: &[u8; 32],
     spend_auth_sig: &[u8; 64],
 ) -> Result<()> {
-    let digest = signature_digest(pool, target_id, proof_hash, message_hash)
-        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+    let digest =
+        signature_digest(Pool::Sapling, target_id, proof_hash, message_hash)
+            .map_err(|_| VpError::InvalidSpendAuthSignature)?;
     zair_sapling_proofs::verify_signature(*rk_bytes, *spend_auth_sig, &digest)
         .map_err(|_| VpError::InvalidSpendAuthSignature)?;
 
@@ -112,7 +111,6 @@ where
         check_proof_hash(&proof.proof_hash, proof)?;
         check_message_hash(&proof.message_hash, message)?;
         verify_signature(
-            Pool::Sapling,
             &target_id,
             &proof.proof_hash,
             &proof.message_hash,

@@ -9,9 +9,8 @@ use zair_orchard_proofs::{
     verify_claim_proof as verify_orchard_proof,
 };
 
-use crate::storage_key::orchard as orchard_key;
-
 use super::{VpError, check_message_hash, check_sha256_value_commitment};
+use crate::storage_key::orchard as orchard_key;
 
 /// Checks that the Orchard proof hash is valid.
 fn check_proof_hash(
@@ -36,15 +35,15 @@ fn check_proof_hash(
 
 /// Verifies that the Orchard spend-auth signature is valid.
 fn verify_signature(
-    pool: Pool,
     target_id: &[u8],
     proof_hash: &[u8; 32],
     message_hash: &[u8; 32],
     rk_bytes: &[u8; 32],
     spend_auth_sig: &[u8; 64],
 ) -> Result<()> {
-    let digest = signature_digest(pool, target_id, proof_hash, message_hash)
-        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+    let digest =
+        signature_digest(Pool::Orchard, target_id, proof_hash, message_hash)
+            .map_err(|_| VpError::InvalidSpendAuthSignature)?;
     zair_orchard_proofs::verify_signature(*rk_bytes, *spend_auth_sig, &digest)
         .map_err(|_| VpError::InvalidSpendAuthSignature)?;
 
@@ -112,7 +111,6 @@ where
         check_proof_hash(&proof.proof_hash, proof)?;
         check_message_hash(&proof.message_hash, message)?;
         verify_signature(
-            Pool::Sapling,
             &target_id,
             &proof.proof_hash,
             &proof.message_hash,
