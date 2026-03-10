@@ -6468,6 +6468,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "redjubjub"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89b0ac1bc6bb3696d2c6f52cff8fba57238b81da8c0214ee6cd146eb8fde364e"
+dependencies = [
+ "rand_core",
+ "reddsa",
+ "serde",
+ "thiserror 1.0.69",
+ "zeroize",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9740,20 +9753,22 @@ dependencies = [
 [[package]]
 name = "zair-core"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#e26daf9fb6c9c1fb90bb5c96328c1a2420e546c3"
+source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
 dependencies = [
+ "blake2b_simd",
  "bytemuck",
  "schemars 1.2.1",
  "serde",
  "serde_with",
  "sha2 0.10.8",
+ "thiserror 2.0.18",
  "zip32",
 ]
 
 [[package]]
 name = "zair-orchard-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#e26daf9fb6c9c1fb90bb5c96328c1a2420e546c3"
+source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
 dependencies = [
  "ff",
  "group",
@@ -9767,7 +9782,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#e26daf9fb6c9c1fb90bb5c96328c1a2420e546c3"
+source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
 dependencies = [
  "ff",
  "group",
@@ -9783,11 +9798,12 @@ dependencies = [
 [[package]]
 name = "zair-sapling-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#e26daf9fb6c9c1fb90bb5c96328c1a2420e546c3"
+source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
 dependencies = [
  "bellman",
  "bls12_381",
  "jubjub",
+ "redjubjub",
  "thiserror 2.0.18",
  "zair-core",
 ]

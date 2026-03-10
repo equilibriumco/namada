@@ -9,6 +9,8 @@ use crate::ADDRESS;
 pub const NOTE_COMMITMENT_ROOT_KEY: &str = "note_commitment_root";
 /// Key segment for nullifier gap root.
 pub const NULLIFIER_GAP_ROOT_KEY: &str = "nullifier_gap_root";
+/// Key segment for target id.
+pub const TARGET_ID_KEY: &str = "target_id";
 /// Key segment for value commitment scheme.
 pub const VALUE_COMMITMENT_SCHEME_KEY: &str = "value_commitment_scheme";
 /// Key segment for airdrop nullifiers.
@@ -68,6 +70,15 @@ pub mod sapling {
             .expect("Cannot obtain a storage key")
     }
 
+    /// Gets a key for the Sapling target id storage.
+    pub fn target_id_key() -> storage::Key {
+        storage::Key::from(ADDRESS.to_db_key())
+            .push(&AIRDROP_SAPLING_KEY.to_owned())
+            .expect("Cannot obtain a storage key")
+            .push(&TARGET_ID_KEY.to_owned())
+            .expect("Cannot obtain a storage key")
+    }
+
     /// Gets a key for the Sapling value commitment scheme storage.
     pub fn value_commitment_scheme_key() -> storage::Key {
         storage::Key::from(ADDRESS.to_db_key())
@@ -86,8 +97,6 @@ pub mod orchard {
     const AIRDROP_ORCHARD_KEY: &str = "orchard";
     /// Key segment for parameters.
     pub const PARAMETERS_KEY: &str = "parameters";
-    /// Key segment for target id.
-    pub const TARGET_ID_KEY: &str = "target_id";
 
     /// Gets a key for the Orchard parameters storage.
     pub fn parameters() -> storage::Key {

@@ -7,8 +7,11 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use borsh::BorshSerialize;
-use data::airdrop::{ClaimAirdrop, ClaimMessagesInputFile, ClaimProofsInputFile, ClaimProofsOutput};
-use data::{Fee, GasLimit, airdrop};
+use data::airdrop::{
+    ClaimAirdrop, ClaimMessagesInputFile, ClaimProofsInputFile,
+    ClaimProofsOutput,
+};
+use data::{Fee, GasLimit};
 use masp_primitives::asset_type::AssetType;
 use masp_primitives::transaction::Transaction as MaspTransaction;
 use masp_primitives::transaction::builder::Builder;
@@ -1870,25 +1873,18 @@ pub async fn build_claim_airdrop(
     // Read and decode the proofs file.
     let proofs_str = fs::read_to_string(&claim_file)
         .map_err(|e| Error::Other(format!("Error reading proofs file: {e}")))?;
-    let proofs: ClaimProofsInputFile =
-        serde_json::from_str(&proofs_str).map_err(|e| {
-            Error::Encode(EncodingError::Decoding(e.to_string()))
-        })?;
+    let proofs: ClaimProofsInputFile = serde_json::from_str(&proofs_str)
+        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
 
     // Read and decode the messages file.
     let messages_str = fs::read_to_string(&messages_file).map_err(|e| {
         Error::Other(format!("Error reading messages file: {e}"))
     })?;
-    let messages: ClaimMessagesInputFile =
-        serde_json::from_str(&messages_str).map_err(|e| {
-            Error::Encode(EncodingError::Decoding(e.to_string()))
-        })?;
+    let messages: ClaimMessagesInputFile = serde_json::from_str(&messages_str)
+        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
 
-    let claim_data =
-        ClaimProofsOutput::from_input_files(proofs, messages)
-            .map_err(|e| {
-                Error::Encode(EncodingError::Decoding(e.to_string()))
-            })?;
+    let claim_data = ClaimProofsOutput::from_input_files(proofs, messages)
+        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
 
     let token = context.native_token();
     let data = ClaimAirdrop {

@@ -9,17 +9,22 @@ use namada_core::storage::Key;
 use namada_tx::BatchedTxRef;
 use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput};
 use namada_tx::data::airdrop::util::reversed_hex_encode;
-use namada_tx::data::airdrop::{Message, OrchardClaimProof, SaplingClaimProof};
+use namada_tx::data::airdrop::{
+    Message, OrchardClaimProof, OrchardSignedClaim, SaplingClaimProof,
+    SaplingSignedClaim,
+};
 use namada_vp_env::{Error, Result, VpEnv};
 use thiserror::Error;
-use zair_core::base::cv_sha256 as compute_cv_sha256;
+use zair_core::base::{Pool, cv_sha256 as compute_cv_sha256, signature_digest};
 use zair_orchard_proofs::{
     ValueCommitmentScheme as OrchardValueCommitmentScheme,
-    read_params_from_bytes, verify_claim_proof as verify_orchard_proof,
+    hash_orchard_proof_fields, read_params_from_bytes,
+    verify_claim_proof as verify_orchard_proof,
 };
 use zair_sapling_proofs::{
     ValueCommitmentScheme as SaplingValueCommitmentScheme, VerifyingKey,
-    prepare_verifying_key, verify_claim_proof_bytes as verify_sapling_proof,
+    hash_sapling_proof_fields, prepare_verifying_key,
+    verify_claim_proof_bytes as verify_sapling_proof,
 };
 
 use crate::storage_key::{
@@ -78,6 +83,12 @@ pub enum VpError {
 
     #[error("Message target {0} does not match action target {1}")]
     MessageTargetMismatch(Address, Address),
+    #[error("Computed proof hash is different from provided proof hash")]
+    ProofHashMismatch,
+    #[error("Computed message hash is different from provided message hash")]
+    MessageHashMismatch,
+    #[error("Invalid spend auth signature")]
+    InvalidSpendAuthSignature,
 }
 
 impl From<VpError> for Error {
@@ -129,8 +140,8 @@ where
                 verify_message_targets(claim_data, target)?;
 
                 // zk proof verification.
-                verify_sapling_zk_proofs(ctx, &claim_data.sapling_proofs)?;
-                verify_orchard_zk_proofs(ctx, &claim_data.orchard_proofs)?;
+                verify_sapling_zk_proofs(ctx, &claim_data.sapling)?;
+                verify_orchard_zk_proofs(ctx, &claim_data.orchard)?;
             }
         }
 
@@ -214,6 +225,93 @@ fn verify_message_targets(
     Ok(())
 }
 
+/// Checks that the Sapling proof hash is valid.
+fn check_sapling_proof_hash(
+    proof_hash: &[u8; 32],
+    proof: &SaplingSignedClaim,
+) -> Result<()> {
+    let computed_proof_hash = hash_sapling_proof_fields(
+        &proof.zkproof,
+        &proof.rk,
+        proof.cv,
+        proof.cv_sha256,
+        proof.airdrop_nullifier.into(),
+    );
+
+    if computed_proof_hash != *proof_hash {
+        return Err(VpError::ProofHashMismatch.into());
+    }
+
+    Ok(())
+}
+
+/// Checks that the Orchard proof hash is valid.
+fn check_orchard_proof_hash(
+    proof_hash: &[u8; 32],
+    proof: &OrchardSignedClaim,
+) -> Result<()> {
+    let computed_proof_hash = hash_orchard_proof_fields(
+        &proof.zkproof,
+        &proof.rk,
+        proof.cv,
+        proof.cv_sha256,
+        proof.airdrop_nullifier.into(),
+    )
+    .map_err(|_| VpError::ProofHashMismatch)?;
+
+    if computed_proof_hash != *proof_hash {
+        return Err(VpError::ProofHashMismatch.into());
+    }
+
+    Ok(())
+}
+
+/// Checks that the message hash is valid.
+fn check_message_hash(
+    message_hash: &[u8; 32],
+    message: &Message,
+) -> Result<()> {
+    if message.hash() != *message_hash {
+        return Err(VpError::MessageHashMismatch.into());
+    }
+
+    Ok(())
+}
+
+/// Verifies that the Sapling spend-auth signature is valid.
+fn verify_sapling_signature(
+    pool: Pool,
+    target_id: &[u8],
+    proof_hash: &[u8; 32],
+    message_hash: &[u8; 32],
+    rk_bytes: &[u8; 32],
+    spend_auth_sig: &[u8; 64],
+) -> Result<()> {
+    let digest = signature_digest(pool, target_id, proof_hash, message_hash)
+        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+    zair_sapling_proofs::verify_signature(*rk_bytes, *spend_auth_sig, &digest)
+        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+
+    Ok(())
+}
+
+/// Verifies that the Orchard spend-auth signature is valid.
+fn verify_orchard_signature(
+    pool: Pool,
+    target_id: &[u8],
+    proof_hash: &[u8; 32],
+    message_hash: &[u8; 32],
+    rk_bytes: &[u8; 32],
+    spend_auth_sig: &[u8; 64],
+) -> Result<()> {
+    let digest = signature_digest(pool, target_id, proof_hash, message_hash)
+        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+    zair_orchard_proofs::verify_signature(*rk_bytes, *spend_auth_sig, &digest)
+        .map_err(|_| VpError::InvalidSpendAuthSignature)?;
+
+    Ok(())
+}
+
 /// Checks that the SHA256 value comitment is valid.
 ///
 /// This computes that `cv = SHA256(b'Zair || LE64(amount) || rcv)`.
@@ -262,6 +360,13 @@ where
         .try_into()
         .map_err(|_| VpError::InvalidBytes("nullifier_gap_root".to_string()))?;
 
+    // Read target id from storage.
+    let target_id: Vec<u8> = ctx
+        .read_bytes_post(&sapling::target_id_key())?
+        .ok_or(VpError::MissingTargetId)?
+        .try_into()
+        .map_err(|_| VpError::InvalidBytes("target_id".to_string()))?;
+
     // Read value commitment scheme from storage.
     let scheme_id: u8 = ctx
         .read_bytes_post(&sapling::value_commitment_scheme_key())?
@@ -281,6 +386,18 @@ where
 
     // Finally, verify the proofs sequentially.
     for SaplingClaimProof { proof, message } in sapling_proofs {
+        check_sapling_proof_hash(&proof.proof_hash, proof)?;
+        check_message_hash(&proof.message_hash, message)?;
+        verify_sapling_signature(
+            Pool::Sapling,
+            &target_id,
+            &proof.proof_hash,
+            &proof.message_hash,
+            &proof.rk,
+            &proof.spend_auth_sig,
+        )?;
+
+        // Check that value commitment matches.
         if scheme != SaplingValueCommitmentScheme::Sha256 {
             return Err(VpError::UnsupportedValueCommitmentScheme.into());
         }
@@ -363,6 +480,17 @@ where
 
     // Finally, verify the proofs.
     for OrchardClaimProof { proof, message } in orchard_proofs {
+        check_orchard_proof_hash(&proof.proof_hash, proof)?;
+        check_message_hash(&proof.message_hash, message)?;
+        verify_orchard_signature(
+            Pool::Sapling,
+            &target_id,
+            &proof.proof_hash,
+            &proof.message_hash,
+            &proof.rk,
+            &proof.spend_auth_sig,
+        )?;
+
         if scheme != OrchardValueCommitmentScheme::Sha256 {
             return Err(VpError::UnsupportedValueCommitmentScheme.into());
         }

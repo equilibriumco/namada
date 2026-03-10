@@ -2,13 +2,15 @@ use std::convert::{TryFrom, TryInto};
 
 use indexmap::IndexMap;
 use namada_core::address::Address;
-use namada_core::borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
+use namada_core::borsh::{
+    BorshDeserialize, BorshSchema, BorshSerialize, BorshSerializeExt,
+};
 use serde::{Deserialize, Serialize};
 use serde_with::hex::Hex;
 use serde_with::serde_as;
 use thiserror::Error;
 use util::reversed_hex_encode;
-use zair_core::base::ReversedHex;
+use zair_core::base::{ReversedHex, hash_message};
 
 pub mod util;
 
@@ -67,9 +69,9 @@ pub struct ClaimAirdrop {
 )]
 pub struct ClaimProofsOutput {
     /// Sapling claim proofs, each paired with its message.
-    pub sapling_proofs: Vec<SaplingClaimProof>,
+    pub sapling: Vec<SaplingClaimProof>,
     /// Orchard claim proofs, each paired with its message.
-    pub orchard_proofs: Vec<OrchardClaimProof>,
+    pub orchard: Vec<OrchardClaimProof>,
 }
 
 /// A Sapling claim proof paired with its message.
@@ -86,7 +88,7 @@ pub struct ClaimProofsOutput {
 )]
 pub struct SaplingClaimProof {
     /// The ZK proof result.
-    pub proof: SaplingClaimProofResult,
+    pub proof: SaplingSignedClaim,
     /// The message associated with this proof.
     pub message: Message,
 }
@@ -105,7 +107,7 @@ pub struct SaplingClaimProof {
 )]
 pub struct OrchardClaimProof {
     /// The ZK proof result.
-    pub proof: OrchardClaimProofResult,
+    pub proof: OrchardSignedClaim,
     /// The message associated with this proof.
     pub message: Message,
 }
@@ -141,7 +143,7 @@ impl ClaimProofsOutput {
         }
 
         let mut sapling_proofs = Vec::new();
-        for proof in proofs.sapling_proofs {
+        for proof in proofs.sapling {
             let nullifier_hex = reversed_hex_encode(&proof.airdrop_nullifier);
             let message = sapling_messages.shift_remove(&nullifier_hex).ok_or(
                 ClaimProofsError::MissingMessage {
@@ -153,7 +155,7 @@ impl ClaimProofsOutput {
 
         // Map proofs to messages using the nullifier-message map.
         let mut orchard_proofs = Vec::new();
-        for proof in proofs.orchard_proofs {
+        for proof in proofs.orchard {
             let nullifier_hex = reversed_hex_encode(&proof.airdrop_nullifier);
             let message = orchard_messages.shift_remove(&nullifier_hex).ok_or(
                 ClaimProofsError::MissingMessage {
@@ -176,18 +178,18 @@ impl ClaimProofsOutput {
         }
 
         Ok(ClaimProofsOutput {
-            sapling_proofs,
-            orchard_proofs,
+            sapling: sapling_proofs,
+            orchard: orchard_proofs,
         })
     }
 
     /// Returns an iterator over the airdrop nullifiers of the proofs.
     pub fn nullifier_iter(&self) -> impl Iterator<Item = &[u8; 32]> {
-        self.sapling_proofs
+        self.sapling
             .iter()
             .map(|p| &p.proof.airdrop_nullifier)
             .chain(
-                self.orchard_proofs
+                self.orchard
                     .iter()
                     .map(|p| &p.proof.airdrop_nullifier),
             )
@@ -195,24 +197,24 @@ impl ClaimProofsOutput {
 
     /// Returns an iterator over all messages.
     pub fn message_iter(&self) -> impl Iterator<Item = &Message> {
-        self.sapling_proofs
+        self.sapling
             .iter()
             .map(|p| &p.message)
-            .chain(self.orchard_proofs.iter().map(|p| &p.message))
+            .chain(self.orchard.iter().map(|p| &p.message))
     }
 
     /// Returns an iterator over all (proof, message) pairs for Sapling.
     pub fn sapling_iter(
         &self,
-    ) -> impl Iterator<Item = (&SaplingClaimProofResult, &Message)> {
-        self.sapling_proofs.iter().map(|p| (&p.proof, &p.message))
+    ) -> impl Iterator<Item = (&SaplingSignedClaim, &Message)> {
+        self.sapling.iter().map(|p| (&p.proof, &p.message))
     }
 
     /// Returns an iterator over all (proof, message) pairs for Orchard.
     pub fn orchard_iter(
         &self,
-    ) -> impl Iterator<Item = (&OrchardClaimProofResult, &Message)> {
-        self.orchard_proofs.iter().map(|p| (&p.proof, &p.message))
+    ) -> impl Iterator<Item = (&OrchardSignedClaim, &Message)> {
+        self.orchard.iter().map(|p| (&p.proof, &p.message))
     }
 }
 
@@ -229,7 +231,7 @@ impl ClaimProofsOutput {
     Serialize,
     Deserialize,
 )]
-pub struct SaplingClaimProofResult {
+pub struct SaplingSignedClaim {
     /// The Groth16 proof (192 bytes)
     #[serde_as(as = "Hex")]
     pub zkproof: [u8; 192],
@@ -248,6 +250,15 @@ pub struct SaplingClaimProofResult {
     /// prevention).
     #[serde_as(as = "ReversedHex")]
     pub airdrop_nullifier: [u8; 32],
+    /// Hash of this claim's unsigned proof fields.
+    #[serde_as(as = "Hex")]
+    pub proof_hash: [u8; 32],
+    /// Hash of this claim's external message payload.
+    #[serde_as(as = "Hex")]
+    pub message_hash: [u8; 32],
+    /// Spend authorization signature over the submission digest.
+    #[serde_as(as = "Hex")]
+    pub spend_auth_sig: [u8; 64],
 }
 
 /// Serializable output of a single Orchard claim proof.
@@ -263,7 +274,7 @@ pub struct SaplingClaimProofResult {
     Serialize,
     Deserialize,
 )]
-pub struct OrchardClaimProofResult {
+pub struct OrchardSignedClaim {
     /// The Halo2 proof bytes.
     #[serde_as(as = "Hex")]
     pub zkproof: Vec<u8>,
@@ -282,6 +293,15 @@ pub struct OrchardClaimProofResult {
     /// prevention).
     #[serde_as(as = "ReversedHex")]
     pub airdrop_nullifier: [u8; 32],
+    /// Hash of this claim's unsigned proof fields.
+    #[serde_as(as = "Hex")]
+    pub proof_hash: [u8; 32],
+    /// Hash of this claim's external message payload.
+    #[serde_as(as = "Hex")]
+    pub message_hash: [u8; 32],
+    /// Spend authorization signature over the submission digest.
+    #[serde_as(as = "Hex")]
+    pub spend_auth_sig: [u8; 64],
 }
 
 /// Message containing further claim details needed for validation.
@@ -303,6 +323,14 @@ pub struct Message {
     pub amount: u64,
     /// Commitment value randomness.
     pub rcv: [u8; 32],
+}
+
+impl Message {
+    /// Returns the hash of this message.
+    pub fn hash(&self) -> [u8; 32] {
+        let bytes = self.serialize_to_vec();
+        hash_message(&bytes)
+    }
 }
 
 /// Input format for a single message entry in the messages file. Not to be used
@@ -344,9 +372,9 @@ impl TryFrom<MessageInput> for Message {
 #[derive(Debug, Deserialize)]
 pub struct ClaimProofsInputFile {
     /// Sapling proofs from the file.
-    pub sapling_proofs: Vec<SaplingClaimProofResult>,
+    pub sapling: Vec<SaplingSignedClaim>,
     /// Orchard proofs from the file.
-    pub orchard_proofs: Vec<OrchardClaimProofResult>,
+    pub orchard: Vec<OrchardSignedClaim>,
 }
 
 /// Input wrapper for deserializing the messages file.
@@ -370,10 +398,10 @@ pub mod tests {
     prop_compose! {
         /// Generate an arbitrary claim proofs output.
         pub fn arb_claim_data()(
-            sapling_proofs in proptest::collection::vec(arb_sapling_claim_proof(), 0..10),
-            orchard_proofs in proptest::collection::vec(arb_orchard_claim_proof(), 0..10),
+            sapling in proptest::collection::vec(arb_sapling_claim_proof(), 0..10),
+            orchard in proptest::collection::vec(arb_orchard_claim_proof(), 0..10),
         ) -> ClaimProofsOutput {
-            ClaimProofsOutput { sapling_proofs, orchard_proofs }
+            ClaimProofsOutput { sapling, orchard }
         }
     }
 
@@ -394,13 +422,19 @@ pub mod tests {
             rk in any::<[u8; 32]>(),
             cv in any::<[u8; 32]>(),
             airdrop_nullifier in any::<[u8; 32]>(),
-        ) -> SaplingClaimProofResult {
-            SaplingClaimProofResult {
+            proof_hash in any::<[u8; 32]>(),
+            message_hash in any::<[u8; 32]>(),
+            spend_auth_sig in any::<[u8; 64]>(),
+        ) -> SaplingSignedClaim {
+            SaplingSignedClaim {
                 zkproof,
                 rk,
                 cv: Some(cv),
                 cv_sha256: None,
                 airdrop_nullifier,
+                proof_hash,
+                message_hash,
+                spend_auth_sig,
             }
         }
     }
@@ -422,13 +456,19 @@ pub mod tests {
             rk in any::<[u8; 32]>(),
             cv in any::<[u8; 32]>(),
             airdrop_nullifier in any::<[u8; 32]>(),
-        ) -> OrchardClaimProofResult {
-            OrchardClaimProofResult {
+            proof_hash in any::<[u8; 32]>(),
+            message_hash in any::<[u8; 32]>(),
+            spend_auth_sig in any::<[u8; 64]>(),
+        ) -> OrchardSignedClaim {
+            OrchardSignedClaim {
                 zkproof,
                 rk,
                 cv: Some(cv),
                 cv_sha256: None,
                 airdrop_nullifier,
+                proof_hash,
+                message_hash,
+                spend_auth_sig,
             }
         }
     }

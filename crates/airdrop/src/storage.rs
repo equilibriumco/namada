@@ -85,6 +85,10 @@ fn init_sapling_storage<S: StorageWrite>(
         &sapling_snapshot.nullifier_gap_root,
     )?;
 
+    // Write target id.
+    storage
+        .write_bytes(&sapling::target_id_key(), &sapling_snapshot.target_id)?;
+
     // Write value commitment scheme
     let scheme = match sapling_snapshot.value_commitment_scheme {
         ValueCommitmentScheme::Native => 0u8,
