@@ -63,8 +63,8 @@ where
                 verify_message_targets(claim_data, target)?;
 
                 // zk proof verification.
-                sapling::verify_zk_proofs(ctx, &claim_data.sapling)?;
-                orchard::verify_zk_proofs(ctx, &claim_data.orchard)?;
+                sapling::verify_airdrop_claims(ctx, &claim_data.sapling)?;
+                orchard::verify_airdrop_claims(ctx, &claim_data.orchard)?;
             }
         }
 

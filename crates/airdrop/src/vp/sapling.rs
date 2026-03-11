@@ -39,8 +39,8 @@ fn verify_signature(
     Ok(())
 }
 
-/// Verifies all Sapling zk proofs for a claim.
-pub fn verify_zk_proofs<'ctx, CTX>(
+/// Verifies all Sapling airdrop claims.
+pub fn verify_airdrop_claims<'ctx, CTX>(
     ctx: &'ctx CTX,
     sapling_proofs: &[SaplingClaimProof],
 ) -> Result<()>

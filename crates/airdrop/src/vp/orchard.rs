@@ -40,8 +40,8 @@ fn verify_signature(
     Ok(())
 }
 
-// Verifies all Orchard zk proof for a claim.
-pub fn verify_zk_proofs<'ctx, CTX>(
+// Verifies all Orchard airdrop claims.
+pub fn verify_airdrop_claims<'ctx, CTX>(
     ctx: &'ctx CTX,
     orchard_proofs: &[OrchardClaimProof],
 ) -> Result<()>
