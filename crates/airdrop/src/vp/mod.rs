@@ -29,7 +29,29 @@ impl<'ctx, CTX> AirdropVp<'ctx, CTX>
 where
     CTX: VpEnv<'ctx> + namada_tx::action::Read<Err = Error>,
 {
-    /// Run the validity predicate
+    /// Runs the validity predicate for airdrop claims.
+    ///
+    /// This VP validates that:
+    /// - All airdrop claim actions are authorized by the target address
+    /// - Nullifiers have not been previously used
+    /// - All message targets match the action target
+    /// - Zero-knowledge proofs are valid
+    ///
+    /// # Errors
+    ///
+    /// Returns:
+    /// - `Err(VpError::NoAction)` if no actions were taken
+    /// - `Err(VpError::Unauthorized(target))` if `target` is not in `verifiers`
+    /// - `Err(VpError::NullifierAlreadyUsed(..))` if a nullifier has already been
+    ///   claimed or was used twice in the same transaction
+    /// - `Err(VpError::NullifierNotCommitted)` if a nullifier was not properly
+    ///   committed to storage
+    /// - `Err(VpError::MessageTargetMismatch(..))` if a message target does not
+    ///   match the action target
+    /// - `Err(VpError::UnexpectedNullifierKey(..))` if a nullifier key was
+    ///   modified but was not revealed in the transaction
+    /// - Errors from [`sapling::verify_airdrop_claims`] or
+    ///   [`orchard::verify_airdrop_claims`] if zk proof verification fails
     pub fn validate_tx(
         ctx: &'ctx CTX,
         _batched_tx: &BatchedTxRef<'_>,
