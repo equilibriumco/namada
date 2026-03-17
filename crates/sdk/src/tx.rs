@@ -153,6 +153,9 @@ const IBC_REFUND_ALIAS_PREFIX: &str = "ibc-refund-target";
 
 /// Default timeout in seconds for requests to the `/accepted`
 /// and `/applied` ABCI query endpoints.
+///
+/// NOTE: Airdrop transactions may contain Orchard proofs containing non-native SHA256
+/// value commitment computations that blow up the verification time.
 const DEFAULT_NAMADA_EVENTS_MAX_WAIT_TIME_SECONDS: u64 = 360;
 
 /// Capture the result of running a transaction
