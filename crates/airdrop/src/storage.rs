@@ -76,13 +76,13 @@ fn init_sapling_storage<S: StorageWrite>(
     // Write note commitment root.
     storage.write_bytes(
         &sapling::note_commitment_root_key(),
-        &sapling_snapshot.note_commitment_root,
+        sapling_snapshot.note_commitment_root,
     )?;
 
     // Write nullifier gap root.
     storage.write_bytes(
         &sapling::nullifier_gap_root_key(),
-        &sapling_snapshot.nullifier_gap_root,
+        sapling_snapshot.nullifier_gap_root,
     )?;
 
     // Write target id.
@@ -115,13 +115,13 @@ fn init_orchard_storage<S: StorageWrite>(
     // Write note commitment root.
     storage.write_bytes(
         &orchard::note_commitment_root_key(),
-        &orchard_snapshot.note_commitment_root,
+        orchard_snapshot.note_commitment_root,
     )?;
 
     // Write nullifier gap root.
     storage.write_bytes(
         &orchard::nullifier_gap_root_key(),
-        &orchard_snapshot.nullifier_gap_root,
+        orchard_snapshot.nullifier_gap_root,
     )?;
 
     // Write target id.

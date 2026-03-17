@@ -9,7 +9,7 @@ use super::*;
 
 /// A constant scaling factor for the Airdrop value. This is used to scale the
 /// value of the claim to NAM tokens.
-pub const ZAIR_SCALING_FACTOR: u64 = 1_000;
+pub const ZAIR_SCALING_FACTOR: u128 = 1_000;
 
 impl Ctx {
     /// Claim airdrop tokens
@@ -33,12 +33,14 @@ impl Ctx {
 
         // Mint tokens for each proof's message
         for message in claim_data.message_iter() {
+            let amount =
+                (message.amount as u128).saturating_mul(ZAIR_SCALING_FACTOR);
             namada_token::mint_tokens(
                 self,
                 &Address::Internal(InternalAddress::Airdrop),
                 token_addr,
                 &message.target,
-                Amount::from_u64(message.amount * ZAIR_SCALING_FACTOR),
+                Amount::from_u128(amount),
             )?;
         }
 

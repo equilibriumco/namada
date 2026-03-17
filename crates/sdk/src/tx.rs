@@ -153,6 +153,9 @@ const IBC_REFUND_ALIAS_PREFIX: &str = "ibc-refund-target";
 
 /// Default timeout in seconds for requests to the `/accepted`
 /// and `/applied` ABCI query endpoints.
+///
+/// NOTE: Airdrop transactions may contain Orchard proofs containing non-native SHA256
+/// value commitment computations that blow up the verification time.
 const DEFAULT_NAMADA_EVENTS_MAX_WAIT_TIME_SECONDS: u64 = 360;
 
 /// Capture the result of running a transaction
@@ -1871,13 +1874,13 @@ pub async fn build_claim_airdrop(
         source_exists_or_err(source.clone(), tx_args.force, context).await?;
 
     // Read and decode the proofs file.
-    let proofs_str = fs::read_to_string(&claim_file)
+    let proofs_str = fs::read_to_string(claim_file)
         .map_err(|e| Error::Other(format!("Error reading proofs file: {e}")))?;
     let proofs: ClaimProofsInputFile = serde_json::from_str(&proofs_str)
         .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
 
     // Read and decode the messages file.
-    let messages_str = fs::read_to_string(&messages_file).map_err(|e| {
+    let messages_str = fs::read_to_string(messages_file).map_err(|e| {
         Error::Other(format!("Error reading messages file: {e}"))
     })?;
     let messages: ClaimMessagesInputFile = serde_json::from_str(&messages_str)

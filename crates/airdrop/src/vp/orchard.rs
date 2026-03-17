@@ -50,7 +50,7 @@ where
 {
     // Read orchard parameters from storage.
     let params_bytes: Vec<u8> = ctx
-        .read_bytes_post(&orchard_key::parameters())?
+        .read_bytes_pre(&orchard_key::parameters())?
         .ok_or(VpError::MissingOrchardParameters)?;
 
     let params = read_params_from_bytes(&params_bytes)
@@ -58,7 +58,7 @@ where
 
     // Read note commitment root from storage.
     let note_commitment_root_bytes: [u8; 32] = ctx
-        .read_bytes_post(&orchard_key::note_commitment_root_key())?
+        .read_bytes_pre(&orchard_key::note_commitment_root_key())?
         .ok_or(VpError::MissingNoteCommitmentRoot)?
         .try_into()
         .map_err(|_| {
@@ -67,23 +67,19 @@ where
 
     // Read nullifier gap root from storage.
     let nullifier_gap_root_bytes: [u8; 32] = ctx
-        .read_bytes_post(&orchard_key::nullifier_gap_root_key())?
+        .read_bytes_pre(&orchard_key::nullifier_gap_root_key())?
         .ok_or(VpError::MissingNullifierGapRoot)?
         .try_into()
         .map_err(|_| VpError::InvalidBytes("nullifier_gap_root".to_string()))?;
 
     // Read target id from storage.
     let target_id: Vec<u8> = ctx
-        .read_bytes_post(&orchard_key::target_id_key())?
-        .ok_or(VpError::MissingTargetId)?
-        .try_into()
-        .map_err(|_| VpError::InvalidBytes("target_id".to_string()))?;
+        .read_bytes_pre(&orchard_key::target_id_key())?
+        .ok_or(VpError::MissingTargetId)?;
 
     // Read value commitment scheme from storage.
     let scheme_id: u8 = ctx
-        .read_bytes_post(&orchard_key::value_commitment_scheme_key())?
-        .ok_or(VpError::MissingValueCommitmentScheme)?
-        .pop()
+        .read_pre(&orchard_key::value_commitment_scheme_key())?
         .ok_or(VpError::MissingValueCommitmentScheme)?;
 
     let scheme = match scheme_id {
