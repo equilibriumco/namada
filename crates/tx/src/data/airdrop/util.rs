@@ -15,5 +15,5 @@ fn reverse_bytes<const N: usize>(input: &[u8; N]) -> [u8; N] {
 /// * `String`: The reversed hex string.
 pub fn reversed_hex_encode<const N: usize>(input: &[u8; N]) -> String {
     let reversed = reverse_bytes(input);
-    hex::encode(&reversed)
+    hex::encode(reversed)
 }

@@ -166,15 +166,11 @@ impl ClaimProofsOutput {
         }
 
         // Check for unused messages.
-        if !sapling_messages.is_empty() {
-            if let Some((nullifier, _)) = sapling_messages.into_iter().next() {
-                return Err(ClaimProofsError::UnusedMessage { nullifier });
-            }
+        if let Some((nullifier, _)) = sapling_messages.into_iter().next() {
+            return Err(ClaimProofsError::UnusedMessage { nullifier });
         }
-        if !orchard_messages.is_empty() {
-            if let Some((nullifier, _)) = orchard_messages.into_iter().next() {
-                return Err(ClaimProofsError::UnusedMessage { nullifier });
-            }
+        if let Some((nullifier, _)) = orchard_messages.into_iter().next() {
+            return Err(ClaimProofsError::UnusedMessage { nullifier });
         }
 
         Ok(ClaimProofsOutput {

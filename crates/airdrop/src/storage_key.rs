@@ -41,7 +41,12 @@ pub fn is_airdrop_nullifier_key(key: &storage::Key) -> bool {
 
 /// Sapling configuration storage keys.
 pub mod sapling {
-    use super::*;
+    use namada_core::storage;
+
+    use super::{
+        NOTE_COMMITMENT_ROOT_KEY, NULLIFIER_GAP_ROOT_KEY, TARGET_ID_KEY,
+        VALUE_COMMITMENT_SCHEME_KEY, make_airdrop_key,
+    };
 
     /// Key segment prefix for Sapling configuration.
     pub const AIRDROP_SAPLING_KEY: &str = "sapling";
@@ -76,7 +81,12 @@ pub mod sapling {
 
 /// Orchard configuration storage keys.
 pub mod orchard {
-    use super::*;
+    use namada_core::storage;
+
+    use super::{
+        NOTE_COMMITMENT_ROOT_KEY, NULLIFIER_GAP_ROOT_KEY, TARGET_ID_KEY,
+        VALUE_COMMITMENT_SCHEME_KEY, make_airdrop_key,
+    };
 
     /// Key segment prefix for Orchard configuration.
     pub const AIRDROP_ORCHARD_KEY: &str = "orchard";

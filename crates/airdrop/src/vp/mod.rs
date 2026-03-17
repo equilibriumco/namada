@@ -22,7 +22,7 @@ mod sapling;
 
 /// Airdrop VP
 pub struct AirdropVp<'ctx, CTX> {
-    pub _marker: PhantomData<&'ctx CTX>,
+    _marker: PhantomData<&'ctx CTX>,
 }
 
 impl<'ctx, CTX> AirdropVp<'ctx, CTX>
@@ -48,14 +48,14 @@ where
                 claim_data,
             }) = action
             {
-                if !verifiers.contains(&target) {
+                if !verifiers.contains(target) {
                     return Err(VpError::Unauthorized(target.clone()).into());
                 }
 
                 // Check if airdrop nullifiers have already been used.
                 check_airdrop_nullifiers(
                     ctx,
-                    &claim_data,
+                    claim_data,
                     &mut revealed_nullifiers,
                 )?;
 

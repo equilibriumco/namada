@@ -75,15 +75,11 @@ where
     // Read target id from storage.
     let target_id: Vec<u8> = ctx
         .read_bytes_pre(&orchard_key::target_id_key())?
-        .ok_or(VpError::MissingTargetId)?
-        .try_into()
-        .map_err(|_| VpError::InvalidBytes("target_id".to_string()))?;
+        .ok_or(VpError::MissingTargetId)?;
 
     // Read value commitment scheme from storage.
     let scheme_id: u8 = ctx
-        .read_bytes_pre(&orchard_key::value_commitment_scheme_key())?
-        .ok_or(VpError::MissingValueCommitmentScheme)?
-        .pop()
+        .read_pre(&orchard_key::value_commitment_scheme_key())?
         .ok_or(VpError::MissingValueCommitmentScheme)?;
 
     let scheme = match scheme_id {
