@@ -153,7 +153,7 @@ const IBC_REFUND_ALIAS_PREFIX: &str = "ibc-refund-target";
 
 /// Default timeout in seconds for requests to the `/accepted`
 /// and `/applied` ABCI query endpoints.
-const DEFAULT_NAMADA_EVENTS_MAX_WAIT_TIME_SECONDS: u64 = 60;
+const DEFAULT_NAMADA_EVENTS_MAX_WAIT_TIME_SECONDS: u64 = 360;
 
 /// Capture the result of running a transaction
 #[derive(Debug)]
