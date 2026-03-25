@@ -3,6 +3,7 @@
 use namada_tx::data::airdrop::{SaplingClaimProof, SaplingSignedClaim};
 use namada_vp_env::{Error, Result, VpEnv};
 use zair_core::base::{Pool, signature_digest};
+use zair_core::schema::config::{AirdropConfiguration, ValueCommitmentScheme};
 use zair_sapling_proofs::{
     ValueCommitmentScheme as SaplingValueCommitmentScheme, VerifyingKey,
     hash_sapling_proof_fields, prepare_verifying_key,
@@ -10,7 +11,7 @@ use zair_sapling_proofs::{
 };
 
 use super::{VpError, check_sha256_value_commitment};
-use crate::storage_key::sapling as sapling_key;
+use crate::storage_key::{airdrop_config_key, sapling as sapling_key};
 
 /// Verifies that the Sapling spend-auth signature is valid.
 fn verify_signature(
@@ -56,40 +57,21 @@ where
         .map_err(|e| VpError::InvalidVerifyingKey(e.to_string()))?;
     let pvk = prepare_verifying_key(&vk);
 
-    // Read note commitment root from storage.
-    let note_commitment_root_bytes: [u8; 32] = ctx
-        .read_bytes_pre(&sapling_key::note_commitment_root_key())?
-        .ok_or(VpError::MissingNoteCommitmentRoot)?
-        .try_into()
-        .map_err(|_| {
-            VpError::InvalidBytes("note_commitment_root".to_string())
-        })?;
+    // Read airdrop config from storage and extract sapling fields.
+    let config_bytes: Vec<u8> = ctx
+        .read_bytes_pre(&airdrop_config_key())?
+        .ok_or(VpError::MissingAirdropConfig)?;
+    let config: AirdropConfiguration = serde_json::from_slice(&config_bytes)
+        .map_err(|e| VpError::InvalidAirdropConfig(e.to_string()))?;
+    let sapling = config.sapling.ok_or(VpError::MissingSaplingConfig)?;
 
-    // Read nullifier gap root from storage.
-    let nullifier_gap_root_bytes: [u8; 32] = ctx
-        .read_bytes_pre(&sapling_key::nullifier_gap_root_key())?
-        .ok_or(VpError::MissingNullifierGapRoot)?
-        .try_into()
-        .map_err(|_| VpError::InvalidBytes("nullifier_gap_root".to_string()))?;
+    let note_commitment_root_bytes = sapling.note_commitment_root;
+    let nullifier_gap_root_bytes = sapling.nullifier_gap_root;
+    let target_id = sapling.target_id.as_bytes().to_vec();
 
-    // Read target id from storage.
-    let target_id: Vec<u8> = ctx
-        .read_bytes_pre(&sapling_key::target_id_key())?
-        .ok_or(VpError::MissingTargetId)?;
-
-    // Read value commitment scheme from storage.
-    let scheme_id: u8 = ctx
-        .read_pre(&sapling_key::value_commitment_scheme_key())?
-        .ok_or(VpError::MissingValueCommitmentScheme)?;
-
-    let scheme = match scheme_id {
-        0 => SaplingValueCommitmentScheme::Native,
-        1 => SaplingValueCommitmentScheme::Sha256,
-        n => {
-            return Err(
-                VpError::InvalidValueCommitmentScheme(n.to_string()).into()
-            );
-        }
+    let scheme = match sapling.value_commitment_scheme {
+        ValueCommitmentScheme::Native => SaplingValueCommitmentScheme::Native,
+        ValueCommitmentScheme::Sha256 => SaplingValueCommitmentScheme::Sha256,
     };
 
     // Finally, verify the proofs sequentially.

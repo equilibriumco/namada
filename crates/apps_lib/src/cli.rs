@@ -3784,8 +3784,12 @@ pub mod args {
         }),
     );
     pub const DEVICE_TRANSPORT_ENV_VAR: &str = "NAMADA_DEVICE_TRANSPORT";
-    pub const ZAIR_CLAIM_FILE: Arg<PathBuf> = arg("claim-file-path");
-    pub const ZAIR_MESSAGES_FILE: Arg<PathBuf> = arg("messages-file-path");
+    pub const ZAIR_SEED_FILE: Arg<PathBuf> = arg("seed-file-path");
+    pub const ZAIR_ACCOUNT_ID: ArgDefault<u32> =
+        arg_default("account-id", DefaultFn(|| 0));
+    pub const ZAIR_BIRTHDAY: Arg<u64> = arg("birthday");
+    pub const ZAIR_LIGHTWALLETD_URL: ArgOpt<String> =
+        arg_opt("lightwalletd-url");
 
     /// Global command arguments
     #[derive(Clone, Debug)]
@@ -6621,8 +6625,10 @@ pub mod args {
             Ok(ClaimAirdrop::<SdkTypes> {
                 tx,
                 source: chain_ctx.get(&self.source),
-                claim_file: self.claim_file,
-                messages_file: self.messages_file,
+                seed: self.seed,
+                account_id: self.account_id,
+                birthday: self.birthday,
+                lightwalletd_url: self.lightwalletd_url,
                 tx_code_path: self.tx_code_path.to_path_buf(),
             })
         }
@@ -6632,14 +6638,18 @@ pub mod args {
         fn parse(matches: &ArgMatches) -> Self {
             let tx = Tx::parse(matches);
             let source = SOURCE.parse(matches);
-            let claim_file = ZAIR_CLAIM_FILE.parse(matches);
-            let messages_file = ZAIR_MESSAGES_FILE.parse(matches);
+            let seed = ZAIR_SEED_FILE.parse(matches);
+            let account_id = ZAIR_ACCOUNT_ID.parse(matches);
+            let birthday = ZAIR_BIRTHDAY.parse(matches);
+            let lightwalletd_url = ZAIR_LIGHTWALLETD_URL.parse(matches);
             let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
             Self {
                 tx,
                 source,
-                claim_file,
-                messages_file,
+                seed,
+                account_id,
+                birthday,
+                lightwalletd_url,
                 tx_code_path,
             }
         }
@@ -6647,12 +6657,23 @@ pub mod args {
         fn def(app: App) -> App {
             app.add_args::<Tx<CliTypes>>()
                 .arg(SOURCE.def().help(wrap!("Source address.")))
-                .arg(ZAIR_CLAIM_FILE.def().help(wrap!(
-                    "Path to the JSON file containing ZAIR proofs."
+                .arg(ZAIR_SEED_FILE.def().help(wrap!(
+                    "Path to file containing 64-byte seed as hex."
                 )))
-                .arg(ZAIR_MESSAGES_FILE.def().help(wrap!(
-                    "Path to the JSON file containing ZAIR messages."
+                .arg(ZAIR_ACCOUNT_ID.def().help(wrap!(
+                    "ZIP-32 account index used to derive Sapling keys from \
+                     the seed."
                 )))
+                .arg(
+                    ZAIR_BIRTHDAY
+                        .def()
+                        .help(wrap!("Scan start height for note discovery.")),
+                )
+                .arg(
+                    ZAIR_LIGHTWALLETD_URL.def().help(wrap!(
+                        "Optional lightwalletd gRPC endpoint URL."
+                    )),
+                )
         }
     }
 

@@ -58,6 +58,7 @@ namada-eth-bridge = ["namada_apps_lib/namada-eth-bridge"]
 [dependencies]
 namada_apps_lib.workspace = true
 namada_node.workspace = true
+zair-sdk.workspace = true
 
 clap_complete.workspace = true
 clap_complete_nushell.workspace = true

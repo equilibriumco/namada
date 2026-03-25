@@ -68,6 +68,12 @@ pub enum QueryError {
     /// synchronizing with the network.
     #[error("Node is still catching up with the network")]
     CatchingUp,
+    /// Airdrop configuration is missing from storage.
+    #[error(
+        "Airdrop configuration is missing: {0}. Ensure the airdrop has been \
+         initialized on chain."
+    )]
+    MissingAirdropConfig(String),
 }
 
 /// Errors that deal with Decoding, Encoding, or Conversions

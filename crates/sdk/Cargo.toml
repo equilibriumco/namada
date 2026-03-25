@@ -138,6 +138,8 @@ toml.workspace = true
 tracing.workspace = true
 zeroize.workspace = true
 xorf.workspace = true
+zair-sdk.workspace = true
+zair-core.workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rayon.workspace = true

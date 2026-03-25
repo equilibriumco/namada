@@ -61,6 +61,7 @@ use namada_token::masp::MaspTokenRewardData;
 use namada_tx::data::{BatchedTxResult, DryRunResult, ResultCode, TxResult};
 use namada_tx::event::{Batch as BatchAttr, Code as CodeAttr};
 use serde::{Deserialize, Serialize};
+use zair_core::schema::config::AirdropConfiguration;
 
 use crate::args::{InputAmount, OsmosisPoolHop, Slippage};
 use crate::control_flow::time;
@@ -2077,4 +2078,101 @@ pub async fn query_ibc_params<C: Client + Sync>(
         &namada_ibc::storage::params_key(),
     )
     .await
+}
+
+/// Query the airdrop configuration from storage.
+pub async fn query_airdrop_config<C: Client + Sync>(
+    client: &C,
+) -> Result<AirdropConfiguration, error::Error> {
+    let (data, _) = query_storage_value_bytes(
+        client,
+        &namada_airdrop::storage_key::airdrop_config_key(),
+        None,
+        false,
+    )
+    .await?;
+    let bytes = data.ok_or_else(|| {
+        Error::from(QueryError::MissingAirdropConfig(
+            namada_airdrop::storage_key::airdrop_config_key().to_string(),
+        ))
+    })?;
+    serde_json::from_slice(&bytes).map_err(|e| {
+        Error::from(EncodingError::Decoding(format!(
+            "Failed to decode airdrop config: {e}"
+        )))
+    })
+}
+
+/// Query the Sapling snapshot nullifiers from storage.
+pub async fn query_sapling_snapshot_nullifiers<C: Client + Sync>(
+    client: &C,
+) -> Result<Vec<u8>, error::Error> {
+    let (data, _) = query_storage_value_bytes(
+        client,
+        &namada_airdrop::storage_key::sapling::snapshot_nullifiers_key(),
+        None,
+        false,
+    )
+    .await?;
+    data.ok_or_else(|| {
+        Error::from(QueryError::MissingAirdropConfig(
+            namada_airdrop::storage_key::sapling::snapshot_nullifiers_key()
+                .to_string(),
+        ))
+    })
+}
+
+/// Query the Orchard snapshot nullifiers from storage.
+pub async fn query_orchard_snapshot_nullifiers<C: Client + Sync>(
+    client: &C,
+) -> Result<Vec<u8>, error::Error> {
+    let (data, _) = query_storage_value_bytes(
+        client,
+        &namada_airdrop::storage_key::orchard::snapshot_nullifiers_key(),
+        None,
+        false,
+    )
+    .await?;
+    data.ok_or_else(|| {
+        Error::from(QueryError::MissingAirdropConfig(
+            namada_airdrop::storage_key::orchard::snapshot_nullifiers_key()
+                .to_string(),
+        ))
+    })
+}
+
+/// Query the Sapling proving key from storage.
+pub async fn query_sapling_proving_key<C: Client + Sync>(
+    client: &C,
+) -> Result<Vec<u8>, error::Error> {
+    let (data, _) = query_storage_value_bytes(
+        client,
+        &namada_airdrop::storage_key::sapling::proving_key(),
+        None,
+        false,
+    )
+    .await?;
+    data.ok_or_else(|| {
+        Error::from(QueryError::MissingAirdropConfig(
+            namada_airdrop::storage_key::sapling::proving_key().to_string(),
+        ))
+    })
+}
+
+/// Query the Orchard parameters from storage.
+pub async fn query_orchard_parameters<C: Client + Sync>(
+    client: &C,
+) -> Result<Vec<u8>, error::Error> {
+    let (data, _) = query_storage_value_bytes(
+        client,
+        &namada_airdrop::storage_key::orchard::parameters(),
+        None,
+        false,
+    )
+    .await?;
+    data.ok_or_else(|| {
+        Error::from(QueryError::MissingAirdropConfig(
+            namada_airdrop::storage_key::orchard::parameters().to_string(),
+        ))
+    })
 }

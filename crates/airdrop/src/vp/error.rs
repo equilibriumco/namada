@@ -26,21 +26,16 @@ pub enum VpError {
     #[error("Invalid orchard parameters: {0}")]
     InvalidOrchardParameters(String),
 
-    // Storage error types.
-    #[error("Missing note commitment root in storage")]
-    MissingNoteCommitmentRoot,
-    #[error("Missing nullifier gap root in storage")]
-    MissingNullifierGapRoot,
-    #[error("Missing target id in storage")]
-    MissingTargetId,
-    #[error("Invalid bytes found for: {0}")]
-    InvalidBytes(String),
+    // Airdrop config error types.
+    #[error("Missing airdrop config in storage")]
+    MissingAirdropConfig,
+    #[error("Invalid airdrop config: {0}")]
+    InvalidAirdropConfig(String),
+    #[error("Missing sapling config in airdrop configuration")]
+    MissingSaplingConfig,
+    #[error("Missing orchard config in airdrop configuration")]
+    MissingOrchardConfig,
 
-    // Value commitment error types.
-    #[error("Missing value commitment scheme in storage")]
-    MissingValueCommitmentScheme,
-    #[error("Invalid value commitment scheme: {0}")]
-    InvalidValueCommitmentScheme(String),
     #[error("Unsupported value commitment scheme")]
     UnsupportedValueCommitmentScheme,
     #[error(

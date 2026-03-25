@@ -283,12 +283,14 @@ yansi = "1.0"
 zair-core = { git = "https://github.com/eigerco/zair" }
 zair-orchard-proofs = { git = "https://github.com/eigerco/zair" }
 zair-sapling-proofs = { git = "https://github.com/eigerco/zair" }
+zair-sdk = { git = "https://github.com/eigerco/zair" }
 zeroize = { version = "1.5", features = ["zeroize_derive"] }
 zstd = "0.13"
 
 [patch.crates-io]
 halo2_gadgets = { git = "https://github.com/eigerco/halo2" }
 orchard = { git = "https://github.com/eigerco/orchard" }
+sapling-crypto = { git = "https://github.com/eigerco/sapling-crypto" }
 
 [profile.release]
 lto = true

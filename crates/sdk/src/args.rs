@@ -1899,10 +1899,14 @@ pub struct ClaimAirdrop<C: NamadaTypes = SdkTypes> {
     pub tx: Tx<C>,
     /// Source address for claiming Airdrop
     pub source: C::Address,
-    /// Path to the JSON file containing ZAIR zk proofs
-    pub claim_file: PathBuf,
-    /// Path to the JSON file containing ZAIR messages
-    pub messages_file: PathBuf,
+    /// Path to file containing 64-byte seed as hex
+    pub seed: PathBuf,
+    /// ZIP-32 account index used to derive Sapling keys from the seed
+    pub account_id: u32,
+    /// Scan start height for note discovery
+    pub birthday: u64,
+    /// Optional lightwalletd gRPC endpoint URL
+    pub lightwalletd_url: Option<String>,
     /// Path to the TX WASM code file
     pub tx_code_path: PathBuf,
 }

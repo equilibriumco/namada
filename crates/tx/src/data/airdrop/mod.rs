@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
 
 use indexmap::IndexMap;
@@ -207,6 +208,77 @@ impl ClaimProofsOutput {
         &self,
     ) -> impl Iterator<Item = (&OrchardSignedClaim, &Message)> {
         self.orchard.iter().map(|p| (&p.proof, &p.message))
+    }
+
+    /// Build a `ClaimProofsOutput` from a zair-sdk claim submission.
+    ///
+    /// Pairs each signed claim with its corresponding message, looked up
+    /// by airdrop nullifier from the provided map.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a signed claim's nullifier has no corresponding
+    /// message in the map.
+    pub fn from_submission(
+        submission: zair_core::schema::submission::ClaimSubmission,
+        messages_by_nf: &BTreeMap<[u8; 32], Message>,
+    ) -> Result<Self, ClaimProofsError> {
+        fn lookup_message(
+            nf_bytes: [u8; 32],
+            messages: &BTreeMap<[u8; 32], Message>,
+        ) -> Result<Message, ClaimProofsError> {
+            messages.get(&nf_bytes).cloned().ok_or(
+                ClaimProofsError::MissingMessage {
+                    nullifier: reversed_hex_encode(&nf_bytes),
+                },
+            )
+        }
+
+        let sapling = submission
+            .sapling
+            .into_iter()
+            .map(|sc| {
+                let nf_bytes: [u8; 32] = sc.airdrop_nullifier.into();
+                let message = lookup_message(nf_bytes, messages_by_nf)?;
+                Ok(SaplingClaimProof {
+                    proof: SaplingSignedClaim {
+                        zkproof: sc.zkproof,
+                        rk: sc.rk,
+                        cv: sc.cv,
+                        cv_sha256: sc.cv_sha256,
+                        airdrop_nullifier: sc.airdrop_nullifier.into(),
+                        proof_hash: sc.proof_hash,
+                        message_hash: sc.message_hash,
+                        spend_auth_sig: sc.spend_auth_sig,
+                    },
+                    message,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let orchard = submission
+            .orchard
+            .into_iter()
+            .map(|sc| {
+                let nf_bytes: [u8; 32] = sc.airdrop_nullifier.into();
+                let message = lookup_message(nf_bytes, messages_by_nf)?;
+                Ok(OrchardClaimProof {
+                    proof: OrchardSignedClaim {
+                        zkproof: sc.zkproof,
+                        rk: sc.rk,
+                        cv: sc.cv,
+                        cv_sha256: sc.cv_sha256,
+                        airdrop_nullifier: sc.airdrop_nullifier.into(),
+                        proof_hash: sc.proof_hash,
+                        message_hash: sc.message_hash,
+                        spend_auth_sig: sc.spend_auth_sig,
+                    },
+                    message,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(ClaimProofsOutput { sapling, orchard })
     }
 }
 

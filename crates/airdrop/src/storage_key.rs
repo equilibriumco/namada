@@ -5,16 +5,12 @@ use namada_storage::DbKeySeg;
 
 use crate::ADDRESS;
 
-/// Key segment for note commitment root.
-pub const NOTE_COMMITMENT_ROOT_KEY: &str = "note_commitment_root";
-/// Key segment for nullifier gap root.
-pub const NULLIFIER_GAP_ROOT_KEY: &str = "nullifier_gap_root";
-/// Key segment for target id.
-pub const TARGET_ID_KEY: &str = "target_id";
-/// Key segment for value commitment scheme.
-pub const VALUE_COMMITMENT_SCHEME_KEY: &str = "value_commitment_scheme";
+/// Key segment for snapshot nullifiers.
+pub const SNAPSHOT_NULLIFIERS_KEY: &str = "snapshot_nullifiers";
 /// Key segment for airdrop nullifiers.
 pub const AIRDROP_NULLIFIERS_KEY: &str = "airdrop_nullifiers";
+/// Key segment for airdrop config.
+pub const AIRDROP_CONFIG_KEY: &str = "airdrop_config";
 
 /// Creates a storage key from a prefix and key segment.
 fn make_airdrop_key(prefix: &str, segment: &str) -> storage::Key {
@@ -39,43 +35,39 @@ pub fn is_airdrop_nullifier_key(key: &storage::Key) -> bool {
         ] if *addr == ADDRESS && prefix == AIRDROP_NULLIFIERS_KEY)
 }
 
+/// Gets the key for the airdrop JSON config storage.
+pub fn airdrop_config_key() -> storage::Key {
+    storage::Key::from(ADDRESS.to_db_key())
+        .push(&AIRDROP_CONFIG_KEY.to_owned())
+        .expect("Cannot obtain a storage key")
+}
+
 /// Sapling configuration storage keys.
 pub mod sapling {
     use namada_core::storage;
 
-    use super::{
-        NOTE_COMMITMENT_ROOT_KEY, NULLIFIER_GAP_ROOT_KEY, TARGET_ID_KEY,
-        VALUE_COMMITMENT_SCHEME_KEY, make_airdrop_key,
-    };
+    use super::{SNAPSHOT_NULLIFIERS_KEY, make_airdrop_key};
 
     /// Key segment prefix for Sapling configuration.
     pub const AIRDROP_SAPLING_KEY: &str = "sapling";
     /// Key segment for verifying key.
     pub const VERIFYING_KEY_KEY: &str = "verifying_key";
+    /// Key segment for proving key.
+    pub const PROVING_KEY_KEY: &str = "proving_key";
 
     /// Gets a key for the Sapling verifying key storage.
     pub fn verifying_key() -> storage::Key {
         make_airdrop_key(AIRDROP_SAPLING_KEY, VERIFYING_KEY_KEY)
     }
 
-    /// Gets a key for the Sapling note commitment root storage.
-    pub fn note_commitment_root_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_SAPLING_KEY, NOTE_COMMITMENT_ROOT_KEY)
+    /// Gets a key for the Sapling proving key storage.
+    pub fn proving_key() -> storage::Key {
+        make_airdrop_key(AIRDROP_SAPLING_KEY, PROVING_KEY_KEY)
     }
 
-    /// Gets a key for the Sapling nullifier gap root storage.
-    pub fn nullifier_gap_root_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_SAPLING_KEY, NULLIFIER_GAP_ROOT_KEY)
-    }
-
-    /// Gets a key for the Sapling target id storage.
-    pub fn target_id_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_SAPLING_KEY, TARGET_ID_KEY)
-    }
-
-    /// Gets a key for the Sapling value commitment scheme storage.
-    pub fn value_commitment_scheme_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_SAPLING_KEY, VALUE_COMMITMENT_SCHEME_KEY)
+    /// Gets a key for the Sapling snapshot nullifiers storage.
+    pub fn snapshot_nullifiers_key() -> storage::Key {
+        make_airdrop_key(AIRDROP_SAPLING_KEY, SNAPSHOT_NULLIFIERS_KEY)
     }
 }
 
@@ -83,10 +75,7 @@ pub mod sapling {
 pub mod orchard {
     use namada_core::storage;
 
-    use super::{
-        NOTE_COMMITMENT_ROOT_KEY, NULLIFIER_GAP_ROOT_KEY, TARGET_ID_KEY,
-        VALUE_COMMITMENT_SCHEME_KEY, make_airdrop_key,
-    };
+    use super::{SNAPSHOT_NULLIFIERS_KEY, make_airdrop_key};
 
     /// Key segment prefix for Orchard configuration.
     pub const AIRDROP_ORCHARD_KEY: &str = "orchard";
@@ -98,23 +87,8 @@ pub mod orchard {
         make_airdrop_key(AIRDROP_ORCHARD_KEY, PARAMETERS_KEY)
     }
 
-    /// Gets a key for the Orchard note commitment root storage.
-    pub fn note_commitment_root_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_ORCHARD_KEY, NOTE_COMMITMENT_ROOT_KEY)
-    }
-
-    /// Gets a key for the Orchard nullifier gap root storage.
-    pub fn nullifier_gap_root_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_ORCHARD_KEY, NULLIFIER_GAP_ROOT_KEY)
-    }
-
-    /// Gets a key for the Orchard target id storage.
-    pub fn target_id_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_ORCHARD_KEY, TARGET_ID_KEY)
-    }
-
-    /// Gets a key for the Orchard value commitment scheme storage.
-    pub fn value_commitment_scheme_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_ORCHARD_KEY, VALUE_COMMITMENT_SCHEME_KEY)
+    /// Gets a key for the Orchard snapshot nullifiers storage.
+    pub fn snapshot_nullifiers_key() -> storage::Key {
+        make_airdrop_key(AIRDROP_ORCHARD_KEY, SNAPSHOT_NULLIFIERS_KEY)
     }
 }

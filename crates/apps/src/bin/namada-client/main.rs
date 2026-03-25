@@ -9,6 +9,10 @@ async fn main() -> Result<()> {
     // init error reporting
     color_eyre::install()?;
 
+    // init rustls crypto provider (required for TLS connections, e.g.
+    // lightwalletd gRPC for airdrop claims)
+    zair_sdk::install_default_crypto_provider()?;
+
     // init logging
     let _log_guard = logging::init_from_env_or(LevelFilter::INFO)?;
 

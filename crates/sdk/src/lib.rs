@@ -27,6 +27,7 @@ pub mod eth_bridge;
 
 pub mod rpc;
 
+pub mod airdrop_claim;
 pub mod args;
 pub mod masp;
 pub mod signing;
@@ -539,13 +540,17 @@ pub trait Namada: NamadaIo {
     fn new_claim_airdrop(
         &self,
         source: Address,
-        claim_file: PathBuf,
-        messages_file: PathBuf,
+        seed: PathBuf,
+        account_id: u32,
+        birthday: u64,
+        lightwalletd_url: Option<String>,
     ) -> args::ClaimAirdrop {
         args::ClaimAirdrop {
             source,
-            claim_file,
-            messages_file,
+            seed,
+            account_id,
+            birthday,
+            lightwalletd_url,
             tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),
         }
