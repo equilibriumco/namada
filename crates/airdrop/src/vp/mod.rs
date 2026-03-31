@@ -42,8 +42,8 @@ where
     /// Returns:
     /// - `Err(VpError::NoAction)` if no actions were taken
     /// - `Err(VpError::Unauthorized(target))` if `target` is not in `verifiers`
-    /// - `Err(VpError::NullifierAlreadyUsed(..))` if a nullifier has already been
-    ///   claimed or was used twice in the same transaction
+    /// - `Err(VpError::NullifierAlreadyUsed(..))` if a nullifier has already
+    ///   been claimed or was used twice in the same transaction
     /// - `Err(VpError::NullifierNotCommitted)` if a nullifier was not properly
     ///   committed to storage
     /// - `Err(VpError::MessageTargetMismatch(..))` if a message target does not
@@ -140,7 +140,7 @@ where
             .into());
         }
 
-        // Check that the nullifier was properly commited to store.
+        // Check that the nullifier was properly committed to store.
         ctx.read_bytes_post(&airdrop_nullifier_key)?
             .is_some_and(|value| value.is_empty())
             .then_some(())
@@ -170,7 +170,7 @@ fn verify_message_targets(
     Ok(())
 }
 
-/// Checks that the SHA256 value comitment is valid.
+/// Checks that the SHA256 value commitment is valid.
 ///
 /// This computes that `cv = SHA256(b'Zair || LE64(amount) || rcv)`.
 fn check_sha256_value_commitment(

@@ -7,10 +7,6 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use borsh::BorshSerialize;
-use data::airdrop::{
-    ClaimAirdrop, ClaimMessagesInputFile, ClaimProofsInputFile,
-    ClaimProofsOutput,
-};
 use data::{Fee, GasLimit};
 use masp_primitives::asset_type::AssetType;
 use masp_primitives::transaction::Transaction as MaspTransaction;
@@ -154,8 +150,8 @@ const IBC_REFUND_ALIAS_PREFIX: &str = "ibc-refund-target";
 /// Default timeout in seconds for requests to the `/accepted`
 /// and `/applied` ABCI query endpoints.
 ///
-/// NOTE: Airdrop transactions may contain Orchard proofs containing non-native SHA256
-/// value commitment computations that blow up the verification time.
+/// NOTE: Airdrop transactions may contain Orchard proofs containing non-native
+/// SHA256 value commitment computations that blow up the verification time.
 const DEFAULT_NAMADA_EVENTS_MAX_WAIT_TIME_SECONDS: u64 = 360;
 
 /// Capture the result of running a transaction
@@ -1847,8 +1843,10 @@ pub async fn build_claim_airdrop(
     args::ClaimAirdrop {
         tx: tx_args,
         source,
-        claim_file,
-        messages_file,
+        seed,
+        account_id,
+        birthday,
+        lightwalletd_url,
         tx_code_path,
     }: &args::ClaimAirdrop,
 ) -> Result<(Tx, SigningData)> {
@@ -1873,24 +1871,50 @@ pub async fn build_claim_airdrop(
     let source =
         source_exists_or_err(source.clone(), tx_args.force, context).await?;
 
-    // Read and decode the proofs file.
-    let proofs_str = fs::read_to_string(claim_file)
-        .map_err(|e| Error::Other(format!("Error reading proofs file: {e}")))?;
-    let proofs: ClaimProofsInputFile = serde_json::from_str(&proofs_str)
-        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
-
-    // Read and decode the messages file.
-    let messages_str = fs::read_to_string(messages_file).map_err(|e| {
-        Error::Other(format!("Error reading messages file: {e}"))
+    // Read seed from file
+    let seed_hex = fs::read_to_string(seed)
+        .map_err(|e| Error::Other(format!("Error reading seed file: {e}")))?;
+    let seed_bytes = hex::decode(seed_hex.trim()).map_err(|e| {
+        Error::Encode(EncodingError::Decoding(format!("Invalid seed hex: {e}")))
     })?;
-    let messages: ClaimMessagesInputFile = serde_json::from_str(&messages_str)
-        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
+    if seed_bytes.len() != 32 && seed_bytes.len() != 64 {
+        return Err(Error::Other(format!(
+            "Invalid seed length: expected 32 or 64 bytes, got {}",
+            seed_bytes.len()
+        )));
+    }
 
-    let claim_data = ClaimProofsOutput::from_input_files(proofs, messages)
-        .map_err(|e| Error::Encode(EncodingError::Decoding(e.to_string())))?;
+    // Read airdrop configuration from storage
+    let config = rpc::query_airdrop_config(context.client()).await?;
+
+    // Read snapshot nullifiers from storage
+    let sapling_snapshot_nullifiers =
+        rpc::query_sapling_snapshot_nullifiers(context.client()).await?;
+    let orchard_snapshot_nullifiers =
+        rpc::query_orchard_snapshot_nullifiers(context.client()).await?;
+
+    // Read proving key and parameters from storage
+    let sapling_proving_key =
+        rpc::query_sapling_proving_key(context.client()).await?;
+    let orchard_params =
+        rpc::query_orchard_parameters(context.client()).await?;
+
+    let claim_data = crate::airdrop_claim::generate_airdrop_claim(
+        &source,
+        &seed_bytes,
+        *account_id,
+        *birthday,
+        lightwalletd_url,
+        &config,
+        &sapling_snapshot_nullifiers,
+        &orchard_snapshot_nullifiers,
+        Some(&sapling_proving_key),
+        Some(&orchard_params),
+    )
+    .await?;
 
     let token = context.native_token();
-    let data = ClaimAirdrop {
+    let data = namada_tx::data::airdrop::ClaimAirdrop {
         token,
         target: source,
         claim_data,

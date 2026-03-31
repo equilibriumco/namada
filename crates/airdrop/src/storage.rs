@@ -3,12 +3,11 @@
 use std::path::Path;
 
 use namada_storage::{ResultExt, StorageWrite};
-use zair_core::schema::config::{
-    AirdropConfiguration, OrchardSnapshot, SaplingSnapshot,
-    ValueCommitmentScheme,
-};
+use zair_core::schema::config::AirdropConfiguration;
 
-use crate::storage_key::{airdrop_nullifier_key, orchard, sapling};
+use crate::storage_key::{
+    airdrop_config_key, airdrop_nullifier_key, orchard, sapling,
+};
 
 /// Writes the provided airdrop nullifier to storage.
 pub fn reveal_nullifier<S: StorageWrite>(
@@ -27,6 +26,9 @@ pub fn reveal_nullifier<S: StorageWrite>(
 ///   nullifier_gap_root, value_commitment_scheme
 /// - `<airdrop_dir>/setup-sapling-vk.params` - the Groth16 verifying key
 /// - `<airdrop_dir>/setup-orchard-params.bin` - the Halo2 parameters
+///
+/// Stores the full JSON config in storage and sets up proving/verifying
+/// keys and snapshot nullifiers.
 ///
 /// # Panics
 /// Panics if the airdrop directory or required files are missing.
@@ -48,23 +50,28 @@ pub fn init_storage<S: StorageWrite>(
         ));
     }
 
-    // Initialize storage.
-    if let Some(sapling_snapshot) = &config.sapling {
-        init_sapling_storage(storage, airdrop_dir, sapling_snapshot)?;
+    // Write the full JSON config to storage.
+    storage.write_bytes(&airdrop_config_key(), config_content.as_bytes())?;
+
+    // Initialize pool-specific storage (proving/verifying keys and snapshot
+    // nullifiers).
+    if config.sapling.is_some() {
+        init_sapling_storage(storage, airdrop_dir)?;
     }
 
-    if let Some(orchard_snapshot) = &config.orchard {
-        init_orchard_storage(storage, airdrop_dir, orchard_snapshot)?;
+    if config.orchard.is_some() {
+        init_orchard_storage(storage, airdrop_dir)?;
     }
 
     Ok(())
 }
 
-/// Initialize airdrop configuration for Sapling.
+/// Initialize airdrop storage for Sapling.
+///
+/// Writes the verifying key, proving key, and snapshot nullifiers to storage.
 fn init_sapling_storage<S: StorageWrite>(
     storage: &mut S,
     airdrop_dir: &Path,
-    sapling_snapshot: &SaplingSnapshot,
 ) -> namada_storage::Result<()> {
     // Read and write verifying key.
     let vk_path = airdrop_dir.join("setup-sapling-vk.params");
@@ -73,37 +80,28 @@ fn init_sapling_storage<S: StorageWrite>(
 
     storage.write_bytes(&sapling::verifying_key(), vk_bytes)?;
 
-    // Write note commitment root.
-    storage.write_bytes(
-        &sapling::note_commitment_root_key(),
-        sapling_snapshot.note_commitment_root,
-    )?;
+    // Read and write proving key.
+    let pk_path = airdrop_dir.join("setup-sapling-pk.params");
+    let pk_bytes = std::fs::read(&pk_path)
+        .wrap_err("Failed to read Sapling proving key")?;
 
-    // Write nullifier gap root.
-    storage.write_bytes(
-        &sapling::nullifier_gap_root_key(),
-        sapling_snapshot.nullifier_gap_root,
-    )?;
+    storage.write_bytes(&sapling::proving_key(), pk_bytes)?;
 
-    // Write target id.
-    storage
-        .write_bytes(&sapling::target_id_key(), &sapling_snapshot.target_id)?;
-
-    // Write value commitment scheme
-    let scheme = match sapling_snapshot.value_commitment_scheme {
-        ValueCommitmentScheme::Native => 0u8,
-        ValueCommitmentScheme::Sha256 => 1u8,
-    };
-    storage.write(&sapling::value_commitment_scheme_key(), scheme)?;
+    // Read and write snapshot nullifiers.
+    let snapshot_path = airdrop_dir.join("snapshot-sapling.bin");
+    let snapshot_bytes = std::fs::read(&snapshot_path)
+        .wrap_err("Failed to read Sapling snapshot nullifiers")?;
+    storage.write_bytes(&sapling::snapshot_nullifiers_key(), snapshot_bytes)?;
 
     Ok(())
 }
 
-/// Initialize airdrop configuration for Orchard.
+/// Initialize airdrop storage for Orchard.
+///
+/// Writes the parameters and snapshot nullifiers to storage.
 fn init_orchard_storage<S: StorageWrite>(
     storage: &mut S,
     airdrop_dir: &Path,
-    orchard_snapshot: &OrchardSnapshot,
 ) -> namada_storage::Result<()> {
     // Read and write parameters.
     let params_path = airdrop_dir.join("setup-orchard-params.bin");
@@ -112,28 +110,11 @@ fn init_orchard_storage<S: StorageWrite>(
 
     storage.write_bytes(&orchard::parameters(), params_bytes)?;
 
-    // Write note commitment root.
-    storage.write_bytes(
-        &orchard::note_commitment_root_key(),
-        orchard_snapshot.note_commitment_root,
-    )?;
-
-    // Write nullifier gap root.
-    storage.write_bytes(
-        &orchard::nullifier_gap_root_key(),
-        orchard_snapshot.nullifier_gap_root,
-    )?;
-
-    // Write target id.
-    storage
-        .write_bytes(&orchard::target_id_key(), &orchard_snapshot.target_id)?;
-
-    // Write value commitment scheme
-    let scheme = match orchard_snapshot.value_commitment_scheme {
-        ValueCommitmentScheme::Native => 0u8,
-        ValueCommitmentScheme::Sha256 => 1u8,
-    };
-    storage.write(&orchard::value_commitment_scheme_key(), scheme)?;
+    // Read and write snapshot nullifiers.
+    let snapshot_path = airdrop_dir.join("snapshot-orchard.bin");
+    let snapshot_bytes = std::fs::read(&snapshot_path)
+        .wrap_err("Failed to read Orchard snapshot nullifiers")?;
+    storage.write_bytes(&orchard::snapshot_nullifiers_key(), snapshot_bytes)?;
 
     Ok(())
 }
