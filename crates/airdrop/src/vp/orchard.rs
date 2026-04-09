@@ -3,14 +3,14 @@
 use namada_tx::data::airdrop::{OrchardClaimProof, OrchardSignedClaim};
 use namada_vp_env::{Error, Result, VpEnv};
 use zair_core::base::{Pool, signature_digest};
-use zair_core::schema::config::{AirdropConfiguration, ValueCommitmentScheme};
+use zair_core::schema::config::AirdropConfiguration;
 use zair_orchard_proofs::{
     ValueCommitmentScheme as OrchardValueCommitmentScheme,
     hash_orchard_proof_fields, read_params_from_bytes,
     verify_claim_proof as verify_orchard_proof,
 };
 
-use super::{VpError, check_sha256_value_commitment};
+use super::{VpError, check_plain_value_commitment};
 use crate::storage_key::{airdrop_config_key, orchard as orchard_key};
 
 /// Verifies that the Orchard spend-auth signature is valid.
@@ -22,8 +22,9 @@ fn verify_signature(
     let proof_hash = hash_orchard_proof_fields(
         &proof.zkproof,
         &proof.rk,
-        proof.cv,
-        proof.cv_sha256,
+        None,
+        None,
+        Some(proof.value),
         proof.airdrop_nullifier.into(),
     )
     .map_err(|_| VpError::InvalidSpendAuthSignature)?;
@@ -41,7 +42,7 @@ fn verify_signature(
     Ok(())
 }
 
-// Verifies all Orchard airdrop claims.
+/// Verifies all Orchard airdrop claims.
 pub fn verify_airdrop_claims<'ctx, CTX>(
     ctx: &'ctx CTX,
     orchard_proofs: &[OrchardClaimProof],
@@ -69,32 +70,23 @@ where
     let nullifier_gap_root_bytes = orchard.nullifier_gap_root;
     let target_id = orchard.target_id.as_bytes().to_vec();
 
-    let scheme = match orchard.value_commitment_scheme {
-        ValueCommitmentScheme::Native => OrchardValueCommitmentScheme::Native,
-        ValueCommitmentScheme::Sha256 => OrchardValueCommitmentScheme::Sha256,
-    };
-
-    // Finally, verify the proofs.
+    // Verify the proofs.
     for OrchardClaimProof { proof, message } in orchard_proofs {
         verify_signature(&target_id, proof, &message.hash())?;
 
-        if scheme != OrchardValueCommitmentScheme::Sha256 {
-            return Err(VpError::UnsupportedValueCommitmentScheme.into());
-        }
-
-        let cv = proof.cv_sha256.ok_or(VpError::MissingCvSha256)?;
-        check_sha256_value_commitment(&cv, message)?;
+        check_plain_value_commitment(proof.value, message)?;
 
         verify_orchard_proof(
             &params,
             &proof.zkproof,
-            &proof.cv,
-            &proof.cv_sha256,
+            &None,
+            &None,
+            &Some(proof.value),
             &proof.airdrop_nullifier,
             &proof.rk,
             &note_commitment_root_bytes,
             &nullifier_gap_root_bytes,
-            scheme,
+            OrchardValueCommitmentScheme::Plain,
             &target_id,
         )
         .map_err(|e| VpError::ZkProofVerificationFailed(e.to_string()))?;

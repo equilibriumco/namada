@@ -12320,7 +12320,7 @@ dependencies = [
 [[package]]
 name = "zair-core"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "blake2b_simd",
  "bytemuck",
@@ -12335,7 +12335,7 @@ dependencies = [
 [[package]]
 name = "zair-nonmembership"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "bridgetree",
  "ff",
@@ -12351,7 +12351,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "ff",
  "group",
@@ -12365,7 +12365,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "ff",
  "group",
@@ -12381,7 +12381,7 @@ dependencies = [
 [[package]]
 name = "zair-sapling-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "bellman",
  "bls12_381",
@@ -12394,7 +12394,7 @@ dependencies = [
 [[package]]
 name = "zair-sapling-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "bellman",
  "bls12_381",
@@ -12414,7 +12414,7 @@ dependencies = [
 [[package]]
 name = "zair-scan"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "blake2s_simd",
  "bytemuck",
@@ -12444,7 +12444,7 @@ dependencies = [
 [[package]]
 name = "zair-sdk"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#98c87d9d88b62ea639f85fc8ff924279e328039c"
+source = "git+https://github.com/eigerco/zair#2fc10b7f51599d07ec62483059a6631808eb4840"
 dependencies = [
  "bellman",
  "bip39",

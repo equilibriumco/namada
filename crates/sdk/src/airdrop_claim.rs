@@ -20,10 +20,10 @@ type HashesByNullifier = BTreeMap<Nullifier, [u8; 32]>;
 type BuildMessagesResult =
     Result<(MessagesByNullifier, HashesByNullifier, HashesByNullifier)>;
 
-/// A single proof-secret pair with the fields needed for message construction.
+/// A single proof-nullifier pair with the fields needed for message
+/// construction.
 struct ProofSecret {
     airdrop_nullifier: Nullifier,
-    rcv_sha256: Option<[u8; 32]>,
 }
 
 /// Generate the airdrop claim data by orchestrating key derivation, chain
@@ -74,22 +74,12 @@ pub async fn generate_airdrop_claim(
         .await
         .map_err(|e| Error::Other(format!("Proof generation failed: {e}")))?;
 
-    let sapling_pairs = proofs
-        .sapling_proofs
-        .iter()
-        .zip(secrets.sapling.iter())
-        .map(|(p, s)| ProofSecret {
-            airdrop_nullifier: p.airdrop_nullifier,
-            rcv_sha256: s.rcv_sha256,
-        });
-    let orchard_pairs = proofs
-        .orchard_proofs
-        .iter()
-        .zip(secrets.orchard.iter())
-        .map(|(p, s)| ProofSecret {
-            airdrop_nullifier: p.airdrop_nullifier,
-            rcv_sha256: s.rcv_sha256,
-        });
+    let sapling_pairs = proofs.sapling_proofs.iter().map(|p| ProofSecret {
+        airdrop_nullifier: p.airdrop_nullifier,
+    });
+    let orchard_pairs = proofs.orchard_proofs.iter().map(|p| ProofSecret {
+        airdrop_nullifier: p.airdrop_nullifier,
+    });
 
     let (messages_by_nf, sapling_hashes, orchard_hashes) = build_messages(
         source,
@@ -190,17 +180,10 @@ fn add_messages<I: InputAmounts>(
                 ps.airdrop_nullifier
             ))
         })?;
-        let rcv = ps.rcv_sha256.ok_or_else(|| {
-            Error::Other(format!(
-                "Missing rcv_sha256 for {label} nullifier {:?}",
-                ps.airdrop_nullifier
-            ))
-        })?;
 
         let message = Message {
             target: source.clone(),
             amount,
-            rcv,
         };
         hashes.insert(
             ps.airdrop_nullifier,

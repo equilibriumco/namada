@@ -12,7 +12,6 @@ use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput};
 use namada_tx::data::airdrop::Message;
 use namada_tx::data::airdrop::util::reversed_hex_encode;
 use namada_vp_env::{Error, Result, VpEnv};
-use zair_core::base::cv_sha256 as compute_cv_sha256;
 
 use crate::storage_key::{airdrop_nullifier_key, is_airdrop_nullifier_key};
 
@@ -170,15 +169,13 @@ fn verify_message_targets(
     Ok(())
 }
 
-/// Checks that the SHA256 value commitment is valid.
-///
-/// This computes that `cv = SHA256(b'Zair || LE64(amount) || rcv)`.
-fn check_sha256_value_commitment(
-    cv: &[u8; 32],
-    Message { amount, rcv, .. }: &Message,
+/// Checks that the plain value commitment is valid by comparing the proof
+/// value directly with the message amoiunt.
+fn check_plain_value_commitment(
+    value: u64,
+    Message { amount, .. }: &Message,
 ) -> Result<()> {
-    let computed_cv = compute_cv_sha256(*amount, *rcv);
-    if computed_cv != *cv {
+    if value != *amount {
         return Err(VpError::ValueCommitmentMismatch.into());
     }
 
