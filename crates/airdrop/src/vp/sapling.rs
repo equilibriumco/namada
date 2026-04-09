@@ -3,14 +3,14 @@
 use namada_tx::data::airdrop::{SaplingClaimProof, SaplingSignedClaim};
 use namada_vp_env::{Error, Result, VpEnv};
 use zair_core::base::{Pool, signature_digest};
-use zair_core::schema::config::{AirdropConfiguration, ValueCommitmentScheme};
+use zair_core::schema::config::AirdropConfiguration;
 use zair_sapling_proofs::{
     ValueCommitmentScheme as SaplingValueCommitmentScheme, VerifyingKey,
     hash_sapling_proof_fields, prepare_verifying_key,
     verify_claim_proof_bytes as verify_sapling_proof,
 };
 
-use super::{VpError, check_sha256_value_commitment};
+use super::{VpError, check_plain_value_commitment};
 use crate::storage_key::{airdrop_config_key, sapling as sapling_key};
 
 /// Verifies that the Sapling spend-auth signature is valid.
@@ -22,8 +22,9 @@ fn verify_signature(
     let proof_hash = hash_sapling_proof_fields(
         &proof.zkproof,
         &proof.rk,
-        proof.cv,
-        proof.cv_sha256,
+        None,
+        None,
+        Some(proof.value),
         proof.airdrop_nullifier.into(),
     );
 
@@ -69,30 +70,20 @@ where
     let nullifier_gap_root_bytes = sapling.nullifier_gap_root;
     let target_id = sapling.target_id.as_bytes().to_vec();
 
-    let scheme = match sapling.value_commitment_scheme {
-        ValueCommitmentScheme::Native => SaplingValueCommitmentScheme::Native,
-        ValueCommitmentScheme::Sha256 => SaplingValueCommitmentScheme::Sha256,
-    };
-
     // Finally, verify the proofs sequentially.
     for SaplingClaimProof { proof, message } in sapling_proofs {
         verify_signature(&target_id, proof, &message.hash())?;
 
-        // Check that value commitment matches.
-        if scheme != SaplingValueCommitmentScheme::Sha256 {
-            return Err(VpError::UnsupportedValueCommitmentScheme.into());
-        }
-
-        let cv = proof.cv_sha256.ok_or(VpError::MissingCvSha256)?;
-        check_sha256_value_commitment(&cv, message)?;
+        check_plain_value_commitment(proof.value, message)?;
 
         verify_sapling_proof(
             &pvk,
             &proof.zkproof,
-            scheme,
+            SaplingValueCommitmentScheme::Plain,
             &proof.rk,
-            proof.cv.as_ref(),
-            proof.cv_sha256.as_ref(),
+            None,
+            None,
+            Some(proof.value),
             &note_commitment_root_bytes,
             &proof.airdrop_nullifier,
             &nullifier_gap_root_bytes,

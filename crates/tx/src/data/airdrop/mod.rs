@@ -244,8 +244,7 @@ impl ClaimProofsOutput {
                     proof: SaplingSignedClaim {
                         zkproof: sc.zkproof,
                         rk: sc.rk,
-                        cv: sc.cv,
-                        cv_sha256: sc.cv_sha256,
+                        value: sc.value.unwrap_or(0),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
                         proof_hash: sc.proof_hash,
                         message_hash: sc.message_hash,
@@ -266,8 +265,7 @@ impl ClaimProofsOutput {
                     proof: OrchardSignedClaim {
                         zkproof: sc.zkproof,
                         rk: sc.rk,
-                        cv: sc.cv,
-                        cv_sha256: sc.cv_sha256,
+                        value: sc.value.unwrap_or(0),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
                         proof_hash: sc.proof_hash,
                         message_hash: sc.message_hash,
@@ -302,14 +300,8 @@ pub struct SaplingSignedClaim {
     /// The re-randomized spend verification key (rk)
     #[serde_as(as = "Hex")]
     pub rk: [u8; 32],
-    /// The native value commitment (cv), if the scheme is `native`.
-    #[serde_as(as = "Option<Hex>")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cv: Option<[u8; 32]>,
-    /// The SHA-256 value commitment (`cv_sha256`), if the scheme is `sha256`.
-    #[serde_as(as = "Option<Hex>")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cv_sha256: Option<[u8; 32]>,
+    /// Plain note value (no commitment, public value).
+    pub value: u64,
     /// The airdrop nullifier (airdrop-specific nullifier for double-claim
     /// prevention).
     #[serde_as(as = "ReversedHex")]
@@ -345,14 +337,8 @@ pub struct OrchardSignedClaim {
     /// The re-randomized spend verification key (rk).
     #[serde_as(as = "Hex")]
     pub rk: [u8; 32],
-    /// The native value commitment (`cv`), if the scheme is `native`.
-    #[serde_as(as = "Option<Hex>")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cv: Option<[u8; 32]>,
-    /// The SHA-256 value commitment (`cv_sha256`), if the scheme is `sha256`.
-    #[serde_as(as = "Option<Hex>")]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cv_sha256: Option<[u8; 32]>,
+    /// Plain note value (no commitment, public value).
+    pub value: u64,
     /// The airdrop nullifier (airdrop-specific nullifier for double-claim
     /// prevention).
     #[serde_as(as = "ReversedHex")]
@@ -385,8 +371,6 @@ pub struct Message {
     pub target: Address,
     /// Amount to claim.
     pub amount: u64,
-    /// Commitment value randomness.
-    pub rcv: [u8; 32],
 }
 
 impl Message {
@@ -408,9 +392,6 @@ pub struct MessageInput {
     pub target: String,
     /// Amount to claim.
     pub amount: u64,
-    /// Value commitment randomness.
-    #[serde_as(as = "Hex")]
-    pub rcv: [u8; 32],
 }
 
 impl TryFrom<MessageInput> for Message {
@@ -427,7 +408,6 @@ impl TryFrom<MessageInput> for Message {
         Ok(Message {
             target,
             amount: input.amount,
-            rcv: input.rcv,
         })
     }
 }
@@ -484,7 +464,7 @@ pub mod tests {
         pub fn arb_sapling_proof_result()(
             zkproof in any::<[u8; 192]>(),
             rk in any::<[u8; 32]>(),
-            cv in any::<[u8; 32]>(),
+            value in any::<u64>(),
             airdrop_nullifier in any::<[u8; 32]>(),
             proof_hash in any::<[u8; 32]>(),
             message_hash in any::<[u8; 32]>(),
@@ -493,8 +473,7 @@ pub mod tests {
             SaplingSignedClaim {
                 zkproof,
                 rk,
-                cv: Some(cv),
-                cv_sha256: None,
+                value,
                 airdrop_nullifier,
                 proof_hash,
                 message_hash,
@@ -518,7 +497,7 @@ pub mod tests {
         pub fn arb_orchard_proof_result()(
             zkproof in any::<Vec<u8>>(),
             rk in any::<[u8; 32]>(),
-            cv in any::<[u8; 32]>(),
+            value in any::<u64>(),
             airdrop_nullifier in any::<[u8; 32]>(),
             proof_hash in any::<[u8; 32]>(),
             message_hash in any::<[u8; 32]>(),
@@ -527,8 +506,7 @@ pub mod tests {
             OrchardSignedClaim {
                 zkproof,
                 rk,
-                cv: Some(cv),
-                cv_sha256: None,
+                value,
                 airdrop_nullifier,
                 proof_hash,
                 message_hash,
@@ -542,9 +520,8 @@ pub mod tests {
         pub fn arb_message()(
             target in arb_non_internal_address(),
             amount in any::<u64>(),
-            rcv in any::<[u8; 32]>(),
         ) -> Message {
-            Message { target, amount, rcv }
+            Message { target, amount }
         }
     }
 
