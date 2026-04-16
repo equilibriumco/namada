@@ -244,7 +244,7 @@ impl ClaimProofsOutput {
                     proof: SaplingSignedClaim {
                         zkproof: sc.zkproof,
                         rk: sc.rk,
-                        value: sc.value.unwrap_or(0),
+                        value: sc.value.expect("value must be some"),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
                         proof_hash: sc.proof_hash,
                         message_hash: sc.message_hash,
@@ -265,7 +265,7 @@ impl ClaimProofsOutput {
                     proof: OrchardSignedClaim {
                         zkproof: sc.zkproof,
                         rk: sc.rk,
-                        value: sc.value.unwrap_or(0),
+                        value: sc.value.expect("value must be some"),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
                         proof_hash: sc.proof_hash,
                         message_hash: sc.message_hash,

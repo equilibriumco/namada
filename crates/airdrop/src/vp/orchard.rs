@@ -3,7 +3,7 @@
 use namada_tx::data::airdrop::{OrchardClaimProof, OrchardSignedClaim};
 use namada_vp_env::{Error, Result, VpEnv};
 use zair_core::base::{Pool, signature_digest};
-use zair_core::schema::config::AirdropConfiguration;
+use zair_core::schema::config::OrchardSnapshot;
 use zair_orchard_proofs::{
     ValueCommitmentScheme as OrchardValueCommitmentScheme,
     hash_orchard_proof_fields, read_params_from_bytes,
@@ -11,7 +11,7 @@ use zair_orchard_proofs::{
 };
 
 use super::{VpError, check_plain_value_commitment};
-use crate::storage_key::{airdrop_config_key, orchard as orchard_key};
+use crate::storage_key::orchard as orchard_key;
 
 /// Verifies that the Orchard spend-auth signature is valid.
 fn verify_signature(
@@ -45,11 +45,15 @@ fn verify_signature(
 /// Verifies all Orchard airdrop claims.
 pub fn verify_airdrop_claims<'ctx, CTX>(
     ctx: &'ctx CTX,
+    snapshot: Option<OrchardSnapshot>,
     orchard_proofs: &[OrchardClaimProof],
 ) -> Result<()>
 where
     CTX: VpEnv<'ctx> + namada_tx::action::Read<Err = Error>,
 {
+    // Extract snapshot config.
+    let snapshot = snapshot.ok_or(VpError::MissingOrchardConfig)?;
+
     // Read orchard parameters from storage.
     let params_bytes: Vec<u8> = ctx
         .read_bytes_pre(&orchard_key::parameters())?
@@ -58,17 +62,9 @@ where
     let params = read_params_from_bytes(&params_bytes)
         .map_err(|e| VpError::InvalidOrchardParameters(e.to_string()))?;
 
-    // Read airdrop config from storage and extract orchard fields.
-    let config_bytes: Vec<u8> = ctx
-        .read_bytes_pre(&airdrop_config_key())?
-        .ok_or(VpError::MissingAirdropConfig)?;
-    let config: AirdropConfiguration = serde_json::from_slice(&config_bytes)
-        .map_err(|e| VpError::InvalidAirdropConfig(e.to_string()))?;
-    let orchard = config.orchard.ok_or(VpError::MissingOrchardConfig)?;
-
-    let note_commitment_root_bytes = orchard.note_commitment_root;
-    let nullifier_gap_root_bytes = orchard.nullifier_gap_root;
-    let target_id = orchard.target_id.as_bytes().to_vec();
+    let note_commitment_root_bytes = snapshot.note_commitment_root;
+    let nullifier_gap_root_bytes = snapshot.nullifier_gap_root;
+    let target_id = snapshot.target_id.as_bytes().to_vec();
 
     // Verify the proofs.
     for OrchardClaimProof { proof, message } in orchard_proofs {
