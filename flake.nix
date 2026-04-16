@@ -19,7 +19,7 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [(import-tree ./nix)];
 
-      systems = ["x86_64-linux"];
+      systems = ["x86_64-linux" "aarch64-linux"];
 
       perSystem = {system, ...}: {
         _module.args.pkgs = import nixpkgs {
