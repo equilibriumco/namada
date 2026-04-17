@@ -42,8 +42,6 @@ pub enum VpError {
         "Computed value commitment is different from provided value commitment"
     )]
     ValueCommitmentMismatch,
-    #[error("Missing cv_sha256 in proof")]
-    MissingCvSha256,
 
     // Nullifier commitment error types.
     #[error("NullifierAlreadyUsed: {0}")]

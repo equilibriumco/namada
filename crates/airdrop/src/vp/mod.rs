@@ -12,8 +12,11 @@ use namada_tx::action::{Action, AirdropAction, ClaimProofsOutput};
 use namada_tx::data::airdrop::Message;
 use namada_tx::data::airdrop::util::reversed_hex_encode;
 use namada_vp_env::{Error, Result, VpEnv};
+use zair_core::schema::config::AirdropConfiguration;
 
-use crate::storage_key::{airdrop_nullifier_key, is_airdrop_nullifier_key};
+use crate::storage_key::{
+    airdrop_config_key, airdrop_nullifier_key, is_airdrop_nullifier_key,
+};
 
 mod error;
 mod orchard;
@@ -83,9 +86,26 @@ where
                 // Verify all message targets match the action target.
                 verify_message_targets(claim_data, target)?;
 
+                // Read airdrop config from storage
+                let config_bytes: Vec<u8> = ctx
+                    .read_bytes_pre(&airdrop_config_key())?
+                    .ok_or(VpError::MissingAirdropConfig)?;
+                let config: AirdropConfiguration =
+                    serde_json::from_slice(&config_bytes).map_err(|e| {
+                        VpError::InvalidAirdropConfig(e.to_string())
+                    })?;
+
                 // zk proof verification.
-                sapling::verify_airdrop_claims(ctx, &claim_data.sapling)?;
-                orchard::verify_airdrop_claims(ctx, &claim_data.orchard)?;
+                sapling::verify_airdrop_claims(
+                    ctx,
+                    config.sapling,
+                    &claim_data.sapling,
+                )?;
+                orchard::verify_airdrop_claims(
+                    ctx,
+                    config.orchard,
+                    &claim_data.orchard,
+                )?;
             }
         }
 
@@ -170,7 +190,7 @@ fn verify_message_targets(
 }
 
 /// Checks that the plain value commitment is valid by comparing the proof
-/// value directly with the message amoiunt.
+/// value directly with the message amount.
 fn check_plain_value_commitment(
     value: u64,
     Message { amount, .. }: &Message,
