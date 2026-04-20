@@ -544,6 +544,7 @@ pub trait Namada: NamadaIo {
         account_id: u32,
         birthday: u64,
         lightwalletd_url: Option<String>,
+        airdrop_dir: PathBuf,
     ) -> args::ClaimAirdrop {
         args::ClaimAirdrop {
             source,
@@ -551,6 +552,7 @@ pub trait Namada: NamadaIo {
             account_id,
             birthday,
             lightwalletd_url,
+            airdrop_dir,
             tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),
         }
