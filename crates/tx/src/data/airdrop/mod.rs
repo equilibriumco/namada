@@ -246,8 +246,6 @@ impl ClaimProofsOutput {
                         rk: sc.rk,
                         value: sc.value.expect("value must be some"),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
-                        proof_hash: sc.proof_hash,
-                        message_hash: sc.message_hash,
                         spend_auth_sig: sc.spend_auth_sig,
                     },
                     message,
@@ -267,8 +265,6 @@ impl ClaimProofsOutput {
                         rk: sc.rk,
                         value: sc.value.expect("value must be some"),
                         airdrop_nullifier: sc.airdrop_nullifier.into(),
-                        proof_hash: sc.proof_hash,
-                        message_hash: sc.message_hash,
                         spend_auth_sig: sc.spend_auth_sig,
                     },
                     message,
@@ -306,12 +302,6 @@ pub struct SaplingSignedClaim {
     /// prevention).
     #[serde_as(as = "ReversedHex")]
     pub airdrop_nullifier: [u8; 32],
-    /// Hash of this claim's unsigned proof fields.
-    #[serde_as(as = "Hex")]
-    pub proof_hash: [u8; 32],
-    /// Hash of this claim's external message payload.
-    #[serde_as(as = "Hex")]
-    pub message_hash: [u8; 32],
     /// Spend authorization signature over the submission digest.
     #[serde_as(as = "Hex")]
     pub spend_auth_sig: [u8; 64],
@@ -343,12 +333,6 @@ pub struct OrchardSignedClaim {
     /// prevention).
     #[serde_as(as = "ReversedHex")]
     pub airdrop_nullifier: [u8; 32],
-    /// Hash of this claim's unsigned proof fields.
-    #[serde_as(as = "Hex")]
-    pub proof_hash: [u8; 32],
-    /// Hash of this claim's external message payload.
-    #[serde_as(as = "Hex")]
-    pub message_hash: [u8; 32],
     /// Spend authorization signature over the submission digest.
     #[serde_as(as = "Hex")]
     pub spend_auth_sig: [u8; 64],
@@ -466,8 +450,6 @@ pub mod tests {
             rk in any::<[u8; 32]>(),
             value in any::<u64>(),
             airdrop_nullifier in any::<[u8; 32]>(),
-            proof_hash in any::<[u8; 32]>(),
-            message_hash in any::<[u8; 32]>(),
             spend_auth_sig in any::<[u8; 64]>(),
         ) -> SaplingSignedClaim {
             SaplingSignedClaim {
@@ -475,8 +457,6 @@ pub mod tests {
                 rk,
                 value,
                 airdrop_nullifier,
-                proof_hash,
-                message_hash,
                 spend_auth_sig,
             }
         }
@@ -499,8 +479,6 @@ pub mod tests {
             rk in any::<[u8; 32]>(),
             value in any::<u64>(),
             airdrop_nullifier in any::<[u8; 32]>(),
-            proof_hash in any::<[u8; 32]>(),
-            message_hash in any::<[u8; 32]>(),
             spend_auth_sig in any::<[u8; 64]>(),
         ) -> OrchardSignedClaim {
             OrchardSignedClaim {
@@ -508,8 +486,6 @@ pub mod tests {
                 rk,
                 value,
                 airdrop_nullifier,
-                proof_hash,
-                message_hash,
                 spend_auth_sig,
             }
         }
