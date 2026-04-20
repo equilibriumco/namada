@@ -1844,6 +1844,8 @@ pub async fn build_claim_airdrop(
         account_id,
         birthday,
         lightwalletd_url,
+        sapling_snapshot,
+        orchard_snapshot,
         tx_code_path,
     }: &args::ClaimAirdrop,
 ) -> Result<(Tx, SigningData)> {
@@ -1881,16 +1883,25 @@ pub async fn build_claim_airdrop(
         )));
     }
 
-    // Read airdrop configuration from storage
-    let config = rpc::query_airdrop_config(context.client()).await?;
-
-    // Read snapshot nullifiers from storage
+    // The mainnet snapshots are too large to stream over RPC, load them from
+    // local files.
     let sapling_snapshot_nullifiers =
-        rpc::query_sapling_snapshot_nullifiers(context.client()).await?;
+        fs::read(sapling_snapshot).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Sapling snapshot at {}: {e}",
+                sapling_snapshot.display()
+            ))
+        })?;
     let orchard_snapshot_nullifiers =
-        rpc::query_orchard_snapshot_nullifiers(context.client()).await?;
+        fs::read(orchard_snapshot).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Orchard snapshot at {}: {e}",
+                orchard_snapshot.display()
+            ))
+        })?;
 
-    // Read proving key and parameters from storage
+    // Read airdrop configuration and proving parameters from chain storage
+    let config = rpc::query_airdrop_config(context.client()).await?;
     let sapling_proving_key =
         rpc::query_sapling_proving_key(context.client()).await?;
     let orchard_params =

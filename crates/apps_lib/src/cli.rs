@@ -3790,6 +3790,8 @@ pub mod args {
     pub const ZAIR_BIRTHDAY: Arg<u64> = arg("birthday");
     pub const ZAIR_LIGHTWALLETD_URL: ArgOpt<String> =
         arg_opt("lightwalletd-url");
+    pub const ZAIR_SAPLING_SNAPSHOT: Arg<PathBuf> = arg("sapling-snapshot");
+    pub const ZAIR_ORCHARD_SNAPSHOT: Arg<PathBuf> = arg("orchard-snapshot");
 
     /// Global command arguments
     #[derive(Clone, Debug)]
@@ -6629,6 +6631,8 @@ pub mod args {
                 account_id: self.account_id,
                 birthday: self.birthday,
                 lightwalletd_url: self.lightwalletd_url,
+                sapling_snapshot: self.sapling_snapshot,
+                orchard_snapshot: self.orchard_snapshot,
                 tx_code_path: self.tx_code_path.to_path_buf(),
             })
         }
@@ -6642,6 +6646,8 @@ pub mod args {
             let account_id = ZAIR_ACCOUNT_ID.parse(matches);
             let birthday = ZAIR_BIRTHDAY.parse(matches);
             let lightwalletd_url = ZAIR_LIGHTWALLETD_URL.parse(matches);
+            let sapling_snapshot = ZAIR_SAPLING_SNAPSHOT.parse(matches);
+            let orchard_snapshot = ZAIR_ORCHARD_SNAPSHOT.parse(matches);
             let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
             Self {
                 tx,
@@ -6650,6 +6656,8 @@ pub mod args {
                 account_id,
                 birthday,
                 lightwalletd_url,
+                sapling_snapshot,
+                orchard_snapshot,
                 tx_code_path,
             }
         }
@@ -6674,6 +6682,12 @@ pub mod args {
                         "Optional lightwalletd gRPC endpoint URL."
                     )),
                 )
+                .arg(ZAIR_SAPLING_SNAPSHOT.def().help(wrap!(
+                    "Path to the Sapling nullifier snapshot file."
+                )))
+                .arg(ZAIR_ORCHARD_SNAPSHOT.def().help(wrap!(
+                    "Path to the Orchard nullifier snapshot file."
+                )))
         }
     }
 

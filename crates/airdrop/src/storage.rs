@@ -28,7 +28,7 @@ pub fn reveal_nullifier<S: StorageWrite>(
 /// - `<airdrop_dir>/setup-orchard-params.bin` - the Halo2 parameters
 ///
 /// Stores the full JSON config in storage and sets up proving/verifying
-/// keys and snapshot nullifiers.
+/// keys.
 ///
 /// # Panics
 /// Panics if the airdrop directory or required files are missing.
@@ -68,7 +68,7 @@ pub fn init_storage<S: StorageWrite>(
 
 /// Initialize airdrop storage for Sapling.
 ///
-/// Writes the verifying key, proving key, and snapshot nullifiers to storage.
+/// Writes the verifying key and proving key to storage.
 fn init_sapling_storage<S: StorageWrite>(
     storage: &mut S,
     airdrop_dir: &Path,
@@ -87,18 +87,12 @@ fn init_sapling_storage<S: StorageWrite>(
 
     storage.write_bytes(&sapling::proving_key(), pk_bytes)?;
 
-    // Read and write snapshot nullifiers.
-    let snapshot_path = airdrop_dir.join("snapshot-sapling.bin");
-    let snapshot_bytes = std::fs::read(&snapshot_path)
-        .wrap_err("Failed to read Sapling snapshot nullifiers")?;
-    storage.write_bytes(&sapling::snapshot_nullifiers_key(), snapshot_bytes)?;
-
     Ok(())
 }
 
 /// Initialize airdrop storage for Orchard.
 ///
-/// Writes the parameters and snapshot nullifiers to storage.
+/// Writes the parameters to storage.
 fn init_orchard_storage<S: StorageWrite>(
     storage: &mut S,
     airdrop_dir: &Path,
@@ -109,12 +103,6 @@ fn init_orchard_storage<S: StorageWrite>(
         .wrap_err("Failed to read Orchard parameters")?;
 
     storage.write_bytes(&orchard::parameters(), params_bytes)?;
-
-    // Read and write snapshot nullifiers.
-    let snapshot_path = airdrop_dir.join("snapshot-orchard.bin");
-    let snapshot_bytes = std::fs::read(&snapshot_path)
-        .wrap_err("Failed to read Orchard snapshot nullifiers")?;
-    storage.write_bytes(&orchard::snapshot_nullifiers_key(), snapshot_bytes)?;
 
     Ok(())
 }

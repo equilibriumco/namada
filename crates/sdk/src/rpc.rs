@@ -2103,44 +2103,6 @@ pub async fn query_airdrop_config<C: Client + Sync>(
     })
 }
 
-/// Query the Sapling snapshot nullifiers from storage.
-pub async fn query_sapling_snapshot_nullifiers<C: Client + Sync>(
-    client: &C,
-) -> Result<Vec<u8>, error::Error> {
-    let (data, _) = query_storage_value_bytes(
-        client,
-        &namada_airdrop::storage_key::sapling::snapshot_nullifiers_key(),
-        None,
-        false,
-    )
-    .await?;
-    data.ok_or_else(|| {
-        Error::from(QueryError::MissingAirdropConfig(
-            namada_airdrop::storage_key::sapling::snapshot_nullifiers_key()
-                .to_string(),
-        ))
-    })
-}
-
-/// Query the Orchard snapshot nullifiers from storage.
-pub async fn query_orchard_snapshot_nullifiers<C: Client + Sync>(
-    client: &C,
-) -> Result<Vec<u8>, error::Error> {
-    let (data, _) = query_storage_value_bytes(
-        client,
-        &namada_airdrop::storage_key::orchard::snapshot_nullifiers_key(),
-        None,
-        false,
-    )
-    .await?;
-    data.ok_or_else(|| {
-        Error::from(QueryError::MissingAirdropConfig(
-            namada_airdrop::storage_key::orchard::snapshot_nullifiers_key()
-                .to_string(),
-        ))
-    })
-}
-
 /// Query the Sapling proving key from storage.
 pub async fn query_sapling_proving_key<C: Client + Sync>(
     client: &C,
