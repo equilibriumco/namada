@@ -537,6 +537,7 @@ pub trait Namada: NamadaIo {
     }
 
     /// Make a Claim-airdrop builder from the given minimum set of arguments
+    #[allow(clippy::too_many_arguments)]
     fn new_claim_airdrop(
         &self,
         source: Address,
@@ -544,7 +545,8 @@ pub trait Namada: NamadaIo {
         account_id: u32,
         birthday: u64,
         lightwalletd_url: Option<String>,
-        airdrop_dir: PathBuf,
+        sapling_snapshot: PathBuf,
+        orchard_snapshot: PathBuf,
     ) -> args::ClaimAirdrop {
         args::ClaimAirdrop {
             source,
@@ -552,7 +554,8 @@ pub trait Namada: NamadaIo {
             account_id,
             birthday,
             lightwalletd_url,
-            airdrop_dir,
+            sapling_snapshot,
+            orchard_snapshot,
             tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),
         }

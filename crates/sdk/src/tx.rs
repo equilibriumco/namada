@@ -1844,7 +1844,8 @@ pub async fn build_claim_airdrop(
         account_id,
         birthday,
         lightwalletd_url,
-        airdrop_dir,
+        sapling_snapshot,
+        orchard_snapshot,
         tx_code_path,
     }: &args::ClaimAirdrop,
 ) -> Result<(Tx, SigningData)> {
@@ -1883,14 +1884,20 @@ pub async fn build_claim_airdrop(
     }
 
     // The mainnet snapshots are too large to stream over RPC, load them from
-    // dir.
+    // local files.
     let sapling_snapshot_nullifiers =
-        fs::read(airdrop_dir.join("snapshot-sapling.bin")).map_err(|e| {
-            Error::Other(format!("Failed to read snapshot-sapling.bin: {e}"))
+        fs::read(sapling_snapshot).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Sapling snapshot at {}: {e}",
+                sapling_snapshot.display()
+            ))
         })?;
     let orchard_snapshot_nullifiers =
-        fs::read(airdrop_dir.join("snapshot-orchard.bin")).map_err(|e| {
-            Error::Other(format!("Failed to read snapshot-orchard.bin: {e}"))
+        fs::read(orchard_snapshot).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Orchard snapshot at {}: {e}",
+                orchard_snapshot.display()
+            ))
         })?;
 
     // Read airdrop configuration and proving parameters from chain storage
