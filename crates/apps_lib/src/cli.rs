@@ -6678,13 +6678,11 @@ pub mod args {
                         "Optional lightwalletd gRPC endpoint URL."
                     )),
                 )
-                .arg(
-                    ZAIR_AIRDROP_DIR.def().help(wrap!(
-                        "Path to a directory containing airdrop nullifier \
-                         snapshots (snapshot-orchard.bin and \
-                         snapshot-sapling.bin)."
-                    )),
-                )
+                .arg(ZAIR_AIRDROP_DIR.def().help(wrap!(
+                    "Path to a directory containing airdrop nullifier \
+                     snapshots (snapshot-orchard.bin and \
+                     snapshot-sapling.bin)."
+                )))
         }
     }
 

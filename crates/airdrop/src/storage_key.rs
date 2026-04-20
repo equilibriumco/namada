@@ -5,8 +5,6 @@ use namada_storage::DbKeySeg;
 
 use crate::ADDRESS;
 
-/// Key segment for snapshot nullifiers.
-pub const SNAPSHOT_NULLIFIERS_KEY: &str = "snapshot_nullifiers";
 /// Key segment for airdrop nullifiers.
 pub const AIRDROP_NULLIFIERS_KEY: &str = "airdrop_nullifiers";
 /// Key segment for airdrop config.
@@ -46,7 +44,7 @@ pub fn airdrop_config_key() -> storage::Key {
 pub mod sapling {
     use namada_core::storage;
 
-    use super::{SNAPSHOT_NULLIFIERS_KEY, make_airdrop_key};
+    use super::make_airdrop_key;
 
     /// Key segment prefix for Sapling configuration.
     pub const AIRDROP_SAPLING_KEY: &str = "sapling";
@@ -64,18 +62,13 @@ pub mod sapling {
     pub fn proving_key() -> storage::Key {
         make_airdrop_key(AIRDROP_SAPLING_KEY, PROVING_KEY_KEY)
     }
-
-    /// Gets a key for the Sapling snapshot nullifiers storage.
-    pub fn snapshot_nullifiers_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_SAPLING_KEY, SNAPSHOT_NULLIFIERS_KEY)
-    }
 }
 
 /// Orchard configuration storage keys.
 pub mod orchard {
     use namada_core::storage;
 
-    use super::{SNAPSHOT_NULLIFIERS_KEY, make_airdrop_key};
+    use super::make_airdrop_key;
 
     /// Key segment prefix for Orchard configuration.
     pub const AIRDROP_ORCHARD_KEY: &str = "orchard";
@@ -85,10 +78,5 @@ pub mod orchard {
     /// Gets a key for the Orchard parameters storage.
     pub fn parameters() -> storage::Key {
         make_airdrop_key(AIRDROP_ORCHARD_KEY, PARAMETERS_KEY)
-    }
-
-    /// Gets a key for the Orchard snapshot nullifiers storage.
-    pub fn snapshot_nullifiers_key() -> storage::Key {
-        make_airdrop_key(AIRDROP_ORCHARD_KEY, SNAPSHOT_NULLIFIERS_KEY)
     }
 }

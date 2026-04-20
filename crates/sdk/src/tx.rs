@@ -1882,19 +1882,16 @@ pub async fn build_claim_airdrop(
         )));
     }
 
-    // The mainnet snapshots are too large to stream over RPC, load them from dir.
-    let sapling_snapshot_nullifiers = fs::read(
-        airdrop_dir.join("snapshot-sapling.bin"),
-    )
-    .map_err(|e| {
-        Error::Other(format!("Failed to read snapshot-sapling.bin: {e}"))
-    })?;
-    let orchard_snapshot_nullifiers = fs::read(
-        airdrop_dir.join("snapshot-orchard.bin"),
-    )
-    .map_err(|e| {
-        Error::Other(format!("Failed to read snapshot-orchard.bin: {e}"))
-    })?;
+    // The mainnet snapshots are too large to stream over RPC, load them from
+    // dir.
+    let sapling_snapshot_nullifiers =
+        fs::read(airdrop_dir.join("snapshot-sapling.bin")).map_err(|e| {
+            Error::Other(format!("Failed to read snapshot-sapling.bin: {e}"))
+        })?;
+    let orchard_snapshot_nullifiers =
+        fs::read(airdrop_dir.join("snapshot-orchard.bin")).map_err(|e| {
+            Error::Other(format!("Failed to read snapshot-orchard.bin: {e}"))
+        })?;
 
     // Read airdrop configuration and proving parameters from chain storage
     let config = rpc::query_airdrop_config(context.client()).await?;
