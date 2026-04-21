@@ -1846,6 +1846,8 @@ pub async fn build_claim_airdrop(
         lightwalletd_url,
         sapling_snapshot,
         orchard_snapshot,
+        sapling_gap_tree,
+        orchard_gap_tree,
         tx_code_path,
     }: &args::ClaimAirdrop,
 ) -> Result<(Tx, SigningData)> {
@@ -1900,6 +1902,27 @@ pub async fn build_claim_airdrop(
             ))
         })?;
 
+    let sapling_gap_tree_bytes = if let Some(path) = sapling_gap_tree {
+        Some(fs::read(path).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Sapling gap tree at {}: {e}",
+                path.display()
+            ))
+        })?)
+    } else {
+        None
+    };
+    let orchard_gap_tree_bytes = if let Some(path) = orchard_gap_tree {
+        Some(fs::read(path).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read Orchard gap tree at {}: {e}",
+                path.display()
+            ))
+        })?)
+    } else {
+        None
+    };
+
     // Read airdrop configuration and proving parameters from chain storage
     let config = rpc::query_airdrop_config(context.client()).await?;
     let sapling_proving_key =
@@ -1916,6 +1939,8 @@ pub async fn build_claim_airdrop(
         &config,
         &sapling_snapshot_nullifiers,
         &orchard_snapshot_nullifiers,
+        sapling_gap_tree_bytes.as_deref(),
+        orchard_gap_tree_bytes.as_deref(),
         Some(&sapling_proving_key),
         Some(&orchard_params),
     )

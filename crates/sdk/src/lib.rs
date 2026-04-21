@@ -547,6 +547,8 @@ pub trait Namada: NamadaIo {
         lightwalletd_url: Option<String>,
         sapling_snapshot: PathBuf,
         orchard_snapshot: PathBuf,
+        sapling_gap_tree: Option<PathBuf>,
+        orchard_gap_tree: Option<PathBuf>,
     ) -> args::ClaimAirdrop {
         args::ClaimAirdrop {
             source,
@@ -556,6 +558,8 @@ pub trait Namada: NamadaIo {
             lightwalletd_url,
             sapling_snapshot,
             orchard_snapshot,
+            sapling_gap_tree,
+            orchard_gap_tree,
             tx_code_path: PathBuf::from(TX_CLAIM_AIRDROP_WASM),
             tx: self.tx_builder(),
         }
