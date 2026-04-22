@@ -44,8 +44,8 @@ rlsf = "0.2.1"
 getrandom = { version = "0.2.15", features = ["custom"] }
 
 [patch.crates-io]
-halo2_gadgets = { git = "https://github.com/eigerco/halo2" }
-orchard = { git = "https://github.com/eigerco/orchard" }
+halo2_gadgets = { git = "https://github.com/equilibriumco/halo2" }
+orchard = { git = "https://github.com/equilibriumco/orchard" }
 
 [profile.release]
 # smaller and faster wasm (https://rustwasm.github.io/book/reference/code-size.html#compiling-with-link-time-optimizations-lto)

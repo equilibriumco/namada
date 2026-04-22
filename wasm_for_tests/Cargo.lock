@@ -4872,7 +4872,7 @@ dependencies = [
 [[package]]
 name = "zair-core"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "blake2b_simd",
  "bytemuck",
@@ -4887,7 +4887,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "ff",
  "group",
@@ -4901,7 +4901,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "ff",
  "group",
@@ -4917,7 +4917,7 @@ dependencies = [
 [[package]]
 name = "zair-sapling-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#296dde3fcf3957762e665c2270054d9a3b4bf753"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "bellman",
  "bls12_381",
