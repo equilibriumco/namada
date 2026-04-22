@@ -3792,6 +3792,10 @@ pub mod args {
         arg_opt("lightwalletd-url");
     pub const ZAIR_SAPLING_SNAPSHOT: Arg<PathBuf> = arg("sapling-snapshot");
     pub const ZAIR_ORCHARD_SNAPSHOT: Arg<PathBuf> = arg("orchard-snapshot");
+    pub const ZAIR_SAPLING_GAP_TREE: ArgOpt<PathBuf> =
+        arg_opt("sapling-gap-tree");
+    pub const ZAIR_ORCHARD_GAP_TREE: ArgOpt<PathBuf> =
+        arg_opt("orchard-gap-tree");
 
     /// Global command arguments
     #[derive(Clone, Debug)]
@@ -6633,6 +6637,8 @@ pub mod args {
                 lightwalletd_url: self.lightwalletd_url,
                 sapling_snapshot: self.sapling_snapshot,
                 orchard_snapshot: self.orchard_snapshot,
+                sapling_gap_tree: self.sapling_gap_tree,
+                orchard_gap_tree: self.orchard_gap_tree,
                 tx_code_path: self.tx_code_path.to_path_buf(),
             })
         }
@@ -6648,6 +6654,8 @@ pub mod args {
             let lightwalletd_url = ZAIR_LIGHTWALLETD_URL.parse(matches);
             let sapling_snapshot = ZAIR_SAPLING_SNAPSHOT.parse(matches);
             let orchard_snapshot = ZAIR_ORCHARD_SNAPSHOT.parse(matches);
+            let sapling_gap_tree = ZAIR_SAPLING_GAP_TREE.parse(matches);
+            let orchard_gap_tree = ZAIR_ORCHARD_GAP_TREE.parse(matches);
             let tx_code_path = PathBuf::from(TX_CLAIM_AIRDROP_WASM);
             Self {
                 tx,
@@ -6658,6 +6666,8 @@ pub mod args {
                 lightwalletd_url,
                 sapling_snapshot,
                 orchard_snapshot,
+                sapling_gap_tree,
+                orchard_gap_tree,
                 tx_code_path,
             }
         }
@@ -6688,6 +6698,16 @@ pub mod args {
                 .arg(ZAIR_ORCHARD_SNAPSHOT.def().help(wrap!(
                     "Path to the Orchard nullifier snapshot file."
                 )))
+                .arg(
+                    ZAIR_SAPLING_GAP_TREE
+                        .def()
+                        .help(wrap!("Path to the Sapling gap tree file.")),
+                )
+                .arg(
+                    ZAIR_ORCHARD_GAP_TREE
+                        .def()
+                        .help(wrap!("Path to the Orchard gap tree file.")),
+                )
         }
     }
 

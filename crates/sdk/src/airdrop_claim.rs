@@ -10,6 +10,9 @@ use zair_core::base::{Nullifier, hash_message};
 use zair_core::schema::config::AirdropConfiguration;
 use zair_core::schema::proof_inputs;
 use zair_sdk::api::ResolvedMessageHashes;
+use zair_sdk::api::{key, prove, scan, sign};
+use zair_sdk::commands::GapTreeMode;
+use zair_sdk::common::to_zcash_network;
 
 use crate::borsh::BorshSerializeExt;
 use crate::error::{Error, Result};
@@ -28,9 +31,6 @@ struct ProofSecret {
 
 /// Generate the airdrop claim data by orchestrating key derivation, chain
 /// scanning, proof generation, and signing via the zair SDK.
-///
-/// All required inputs (config, snapshot nullifiers, proving keys) should be
-/// fetched beforehand and passed in.
 #[allow(clippy::too_many_arguments)]
 pub async fn generate_airdrop_claim(
     source: &Address,
@@ -41,38 +41,50 @@ pub async fn generate_airdrop_claim(
     config: &AirdropConfiguration,
     sapling_snapshot_nullifiers: &[u8],
     orchard_snapshot_nullifiers: &[u8],
+    sapling_gap_tree_bytes: Option<&[u8]>,
+    orchard_gap_tree_bytes: Option<&[u8]>,
     sapling_proving_key: Option<&[u8]>,
     orchard_params: Option<&[u8]>,
 ) -> Result<NamadaClaimProofsOutput> {
-    let ufvk = zair_sdk::api::key::derive_ufvk_from_seed(
-        zair_sdk::common::to_zcash_network(config.network),
+    let gap_tree_mode = if sapling_gap_tree_bytes.is_some()
+        || orchard_gap_tree_bytes.is_some()
+    {
+        GapTreeMode::None
+    } else {
+        GapTreeMode::Sparse
+    };
+
+    let ufvk = key::derive_ufvk_from_seed(
+        to_zcash_network(config.network),
         account_id,
         seed_bytes,
     )
     .map_err(|e| Error::Other(format!("Failed to derive UFVK: {e}")))?;
 
-    let claim_inputs = zair_sdk::api::scan::airdrop_claim_from_config(
+    let claim_inputs = scan::airdrop_claim_from_config(
         lightwalletd_url.clone(),
         sapling_snapshot_nullifiers,
         orchard_snapshot_nullifiers,
         &ufvk,
         birthday,
         config,
+        gap_tree_mode,
+        sapling_gap_tree_bytes,
+        orchard_gap_tree_bytes,
     )
     .await
     .map_err(|e| Error::Other(format!("Chain scanning failed: {e}")))?;
 
-    let (proofs, secrets) =
-        zair_sdk::api::prove::generate_claim_proofs_from_bytes(
-            claim_inputs.clone(),
-            seed_bytes,
-            account_id,
-            sapling_proving_key,
-            orchard_params,
-            config,
-        )
-        .await
-        .map_err(|e| Error::Other(format!("Proof generation failed: {e}")))?;
+    let (proofs, secrets) = prove::generate_claim_proofs_from_bytes(
+        claim_inputs.clone(),
+        seed_bytes,
+        account_id,
+        sapling_proving_key,
+        orchard_params,
+        config,
+    )
+    .await
+    .map_err(|e| Error::Other(format!("Proof generation failed: {e}")))?;
 
     let sapling_pairs = proofs.sapling_proofs.iter().map(|p| ProofSecret {
         airdrop_nullifier: p.airdrop_nullifier,
@@ -95,17 +107,16 @@ pub async fn generate_airdrop_claim(
         orchard: orchard_hashes,
     };
 
-    let claim_submission =
-        zair_sdk::api::sign::sign_claim_submission_from_bytes(
-            proofs,
-            secrets,
-            seed_bytes,
-            account_id,
-            config,
-            &message_hashes,
-        )
-        .await
-        .map_err(|e| Error::Other(format!("Claim signing failed: {e}")))?;
+    let claim_submission = sign::sign_claim_submission_from_bytes(
+        proofs,
+        secrets,
+        seed_bytes,
+        account_id,
+        config,
+        &message_hashes,
+    )
+    .await
+    .map_err(|e| Error::Other(format!("Claim signing failed: {e}")))?;
 
     NamadaClaimProofsOutput::from_submission(claim_submission, &messages_by_nf)
         .map_err(|e| Error::Other(format!("Claim conversion failed: {e}")))

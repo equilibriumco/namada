@@ -442,28 +442,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
-name = "aws-lc-rs"
-version = "1.16.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a054912289d18629dc78375ba2c3726a3afe3ff71b4edba9dedfca0e3446d1fc"
-dependencies = [
- "aws-lc-sys",
- "zeroize",
-]
-
-[[package]]
-name = "aws-lc-sys"
-version = "0.39.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fa7e52a4c5c547c741610a2c6f123f3881e409b714cd27e6798ef020c514f0a"
-dependencies = [
- "cc",
- "cmake",
- "dunce",
- "fs_extra",
-]
-
-[[package]]
 name = "axum"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1375,15 +1353,6 @@ name = "clru"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbd0f76e066e64fdc5631e3bb46381254deab9ef1158292f27c8c57e3bf3fe59"
-
-[[package]]
-name = "cmake"
-version = "0.1.57"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75443c44cd6b379beb8c5b45d85d0773baf31cce901fe7bb252f4eff3008ef7d"
-dependencies = [
- "cc",
-]
 
 [[package]]
 name = "cobs"
@@ -3746,7 +3715,7 @@ dependencies = [
 [[package]]
 name = "halo2_gadgets"
 version = "0.3.1"
-source = "git+https://github.com/eigerco/halo2#29a61614e7d96a91940c7690e8021673baf25b30"
+source = "git+https://github.com/equilibriumco/halo2#c06ab687432362b1368b12cfcbaf14e29b13cec3"
 dependencies = [
  "arrayvec",
  "bitvec",
@@ -7518,7 +7487,7 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 [[package]]
 name = "orchard"
 version = "0.11.0"
-source = "git+https://github.com/eigerco/orchard#e7a562b7d5eb81a3ca52cb33d1d3d8b40f5162ef"
+source = "git+https://github.com/equilibriumco/orchard#e7a562b7d5eb81a3ca52cb33d1d3d8b40f5162ef"
 dependencies = [
  "aes",
  "bitvec",
@@ -8988,7 +8957,6 @@ version = "0.23.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "758025cb5fccfd3bc2fd74708fd4682be41d99e5dff73c377c0646c6012c73a4"
 dependencies = [
- "aws-lc-rs",
  "log",
  "once_cell",
  "ring 0.17.8",
@@ -9065,7 +9033,6 @@ version = "0.103.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df33b2b81ac578cabaf06b89b0631153a3f416b0a886e8a7a1707fb51abbd1ef"
 dependencies = [
- "aws-lc-rs",
  "ring 0.17.8",
  "rustls-pki-types",
  "untrusted 0.9.0",
@@ -9116,7 +9083,7 @@ dependencies = [
 [[package]]
 name = "sapling-crypto"
 version = "0.5.0"
-source = "git+https://github.com/eigerco/sapling-crypto#6ab01dd69adaa44d71ab86c21c2fece6ecc86e20"
+source = "git+https://github.com/equilibriumco/sapling-crypto#6ab01dd69adaa44d71ab86c21c2fece6ecc86e20"
 dependencies = [
  "aes",
  "bellman",
@@ -12320,7 +12287,7 @@ dependencies = [
 [[package]]
 name = "zair-core"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "blake2b_simd",
  "bytemuck",
@@ -12335,7 +12302,7 @@ dependencies = [
 [[package]]
 name = "zair-nonmembership"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "bridgetree",
  "ff",
@@ -12352,7 +12319,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "ff",
  "group",
@@ -12366,7 +12333,7 @@ dependencies = [
 [[package]]
 name = "zair-orchard-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "ff",
  "group",
@@ -12382,7 +12349,7 @@ dependencies = [
 [[package]]
 name = "zair-sapling-circuit"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "bellman",
  "bls12_381",
@@ -12395,7 +12362,7 @@ dependencies = [
 [[package]]
 name = "zair-sapling-proofs"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "bellman",
  "bls12_381",
@@ -12415,7 +12382,7 @@ dependencies = [
 [[package]]
 name = "zair-scan"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "blake2s_simd",
  "bytemuck",
@@ -12445,7 +12412,7 @@ dependencies = [
 [[package]]
 name = "zair-sdk"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/zair#0d36dcb5f80fda943b1d476ebdf17b5e2b53a28c"
+source = "git+https://github.com/equilibriumco/zair#c22681e8c517b690e190b187acfd98a9daa33075"
 dependencies = [
  "bellman",
  "bip39",

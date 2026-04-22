@@ -1911,6 +1911,10 @@ pub struct ClaimAirdrop<C: NamadaTypes = SdkTypes> {
     pub sapling_snapshot: PathBuf,
     /// Path to the Orchard nullifier snapshot file
     pub orchard_snapshot: PathBuf,
+    /// Path to the Sapling gap tree file
+    pub sapling_gap_tree: Option<PathBuf>,
+    /// Path to the Orchard gap tree file
+    pub orchard_gap_tree: Option<PathBuf>,
     /// Path to the TX WASM code file
     pub tx_code_path: PathBuf,
 }
