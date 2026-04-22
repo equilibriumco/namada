@@ -9,8 +9,7 @@ use namada_tx::data::airdrop::{
 use zair_core::base::{Nullifier, hash_message};
 use zair_core::schema::config::AirdropConfiguration;
 use zair_core::schema::proof_inputs;
-use zair_sdk::api::ResolvedMessageHashes;
-use zair_sdk::api::{key, prove, scan, sign};
+use zair_sdk::api::{ResolvedMessageHashes, key, prove, scan, sign};
 use zair_sdk::commands::GapTreeMode;
 use zair_sdk::common::to_zcash_network;
 

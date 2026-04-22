@@ -545,8 +545,8 @@ pub trait Namada: NamadaIo {
         account_id: u32,
         birthday: u64,
         lightwalletd_url: Option<String>,
-        sapling_snapshot: PathBuf,
-        orchard_snapshot: PathBuf,
+        sapling_snapshot: Option<PathBuf>,
+        orchard_snapshot: Option<PathBuf>,
         sapling_gap_tree: Option<PathBuf>,
         orchard_gap_tree: Option<PathBuf>,
     ) -> args::ClaimAirdrop {

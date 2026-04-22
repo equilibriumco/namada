@@ -1907,10 +1907,12 @@ pub struct ClaimAirdrop<C: NamadaTypes = SdkTypes> {
     pub birthday: u64,
     /// Optional lightwalletd gRPC endpoint URL
     pub lightwalletd_url: Option<String>,
-    /// Path to the Sapling nullifier snapshot file
-    pub sapling_snapshot: PathBuf,
-    /// Path to the Orchard nullifier snapshot file
-    pub orchard_snapshot: PathBuf,
+    /// Path to the Sapling nullifier snapshot file. Required when the
+    /// airdrop includes a Sapling pool.
+    pub sapling_snapshot: Option<PathBuf>,
+    /// Path to the Orchard nullifier snapshot file. Required when the
+    /// airdrop includes an Orchard pool.
+    pub orchard_snapshot: Option<PathBuf>,
     /// Path to the Sapling gap tree file
     pub sapling_gap_tree: Option<PathBuf>,
     /// Path to the Orchard gap tree file

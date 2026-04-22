@@ -3790,8 +3790,10 @@ pub mod args {
     pub const ZAIR_BIRTHDAY: Arg<u64> = arg("birthday");
     pub const ZAIR_LIGHTWALLETD_URL: ArgOpt<String> =
         arg_opt("lightwalletd-url");
-    pub const ZAIR_SAPLING_SNAPSHOT: Arg<PathBuf> = arg("sapling-snapshot");
-    pub const ZAIR_ORCHARD_SNAPSHOT: Arg<PathBuf> = arg("orchard-snapshot");
+    pub const ZAIR_SAPLING_SNAPSHOT: ArgOpt<PathBuf> =
+        arg_opt("sapling-snapshot");
+    pub const ZAIR_ORCHARD_SNAPSHOT: ArgOpt<PathBuf> =
+        arg_opt("orchard-snapshot");
     pub const ZAIR_SAPLING_GAP_TREE: ArgOpt<PathBuf> =
         arg_opt("sapling-gap-tree");
     pub const ZAIR_ORCHARD_GAP_TREE: ArgOpt<PathBuf> =
@@ -6693,10 +6695,12 @@ pub mod args {
                     )),
                 )
                 .arg(ZAIR_SAPLING_SNAPSHOT.def().help(wrap!(
-                    "Path to the Sapling nullifier snapshot file."
+                    "Path to the Sapling nullifier snapshot file. Required \
+                     when the airdrop includes a Sapling pool."
                 )))
                 .arg(ZAIR_ORCHARD_SNAPSHOT.def().help(wrap!(
-                    "Path to the Orchard nullifier snapshot file."
+                    "Path to the Orchard nullifier snapshot file. Required \
+                     when the airdrop includes an Orchard pool."
                 )))
                 .arg(
                     ZAIR_SAPLING_GAP_TREE
