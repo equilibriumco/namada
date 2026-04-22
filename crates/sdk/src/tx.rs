@@ -1834,6 +1834,35 @@ pub async fn build_claim_rewards(
     .map(|tx| (tx, signing_data))
 }
 
+fn read_pool_snapshot(
+    io: &impl Io,
+    pool_active: bool,
+    path: Option<&std::path::Path>,
+    pool_name: &str,
+) -> Result<Vec<u8>> {
+    match (pool_active, path) {
+        (true, Some(path)) => fs::read(path).map_err(|e| {
+            Error::Other(format!(
+                "Failed to read {pool_name} snapshot at {}: {e}",
+                path.display()
+            ))
+        }),
+        (true, None) => Err(Error::Other(format!(
+            "Missing nullifier snapshot file for {} pool",
+            pool_name
+        ))),
+        (false, Some(_)) => {
+            edisplay_line!(
+                io,
+                "Nullifier snapshot provided for pool {} not in the airdrop, ignoring",
+                pool_name
+            );
+            Ok(Vec::new())
+        }
+        (false, None) => Ok(Vec::new()),
+    }
+}
+
 /// Submit transaction to claim an airdrop
 pub async fn build_claim_airdrop(
     context: &impl Namada,
@@ -1885,22 +1914,21 @@ pub async fn build_claim_airdrop(
         )));
     }
 
-    // The mainnet snapshots are too large to stream over RPC, load them from
-    // local files.
-    let sapling_snapshot_nullifiers =
-        fs::read(sapling_snapshot).map_err(|e| {
-            Error::Other(format!(
-                "Failed to read Sapling snapshot at {}: {e}",
-                sapling_snapshot.display()
-            ))
-        })?;
-    let orchard_snapshot_nullifiers =
-        fs::read(orchard_snapshot).map_err(|e| {
-            Error::Other(format!(
-                "Failed to read Orchard snapshot at {}: {e}",
-                orchard_snapshot.display()
-            ))
-        })?;
+    let config = rpc::query_airdrop_config(context.client()).await?;
+
+    // The mainnet snapshots are too large to stream over RPC.
+    let sapling_snapshot_nullifiers = read_pool_snapshot(
+        context.io(),
+        config.sapling.is_some(),
+        sapling_snapshot.as_deref(),
+        "Sapling",
+    )?;
+    let orchard_snapshot_nullifiers = read_pool_snapshot(
+        context.io(),
+        config.orchard.is_some(),
+        orchard_snapshot.as_deref(),
+        "Orchard",
+    )?;
 
     let sapling_gap_tree_bytes = if let Some(path) = sapling_gap_tree {
         Some(fs::read(path).map_err(|e| {
@@ -1923,8 +1951,7 @@ pub async fn build_claim_airdrop(
         None
     };
 
-    // Read airdrop configuration and proving parameters from chain storage
-    let config = rpc::query_airdrop_config(context.client()).await?;
+    // Read proving parameters from chain storage
     let sapling_proving_key =
         rpc::query_sapling_proving_key(context.client()).await?;
     let orchard_params =
